@@ -3,6 +3,8 @@
 
 // The priorities of tasks, and how the task list sorts, groups and filters them
 
+import * as ICAL from "ical.js";
+
 import { TaskType } from "./pim-types";
 import { addDays, startOfDay } from "./occurrences";
 
@@ -118,4 +120,16 @@ export function groupTasks(open: TaskType[], groupBy: TaskGroupBy, now = new Dat
     ];
   }
   return groups.filter((x) => x.items.length > 0);
+}
+
+// How a repeat rule reads, e.g. "Every week" or "Every 2 days"
+export function repeatName(rule: ICAL.Recur | undefined | null) {
+  if (!rule) {
+    return "Doesn't repeat";
+  }
+  const units: { [freq: string]: string } = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" };
+  const json = (rule as any).toJSON?.() ?? {};
+  const unit = units[json.freq] ?? json.freq?.toLowerCase();
+  const interval = json.interval ?? 1;
+  return (interval > 1) ? `Every ${interval} ${unit}s` : `Every ${unit}`;
 }
