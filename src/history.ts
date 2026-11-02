@@ -54,11 +54,14 @@ export function isOffline(e: unknown) {
 
 // Brings a version back: it's saved as the item's new version (so the current one stays in the
 // history), like a change made here, so it's also pushed by the sync. The item keeps what its meta
-// has that isn't about the content (e.g. whether a note is pinned); a note gets its title back.
-export async function restoreVersion(etebase: Etebase.Account, colUid: string, itemUid: string, version: Version, withName: boolean) {
+// has that isn't about the content (e.g. whether a note is pinned), apart from the fields of the meta
+// that are given (e.g. a note's title, or a bookmark's title, link, note and tags, which are in its
+// meta), which are brought back too.
+export async function restoreVersion(etebase: Etebase.Account, colUid: string, itemUid: string, version: Version, metaFields: string[]) {
   const { col, itemMgr, item } = loadItem(etebase, colUid, itemUid);
+  const restored = Object.fromEntries(metaFields.map((key) => [key, (version.meta as { [key: string]: unknown })[key]]));
   await item.setContent(version.content);
-  item.setMeta({ ...item.getMeta(), ...((withName) ? { name: version.name } : {}), mtime: (new Date()).getTime() });
+  item.setMeta({ ...item.getMeta(), ...restored, mtime: (new Date()).getTime() });
   await saveItemsLocally(etebase, col, itemMgr, [item]);
 }
 

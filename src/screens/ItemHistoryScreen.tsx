@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: © 2019 EteSync Authors
 // SPDX-License-Identifier: GPL-3.0-only
 
-// The history of a note or an event: its versions on the server, newest first, and the one that is
-// chosen, with what changed since the one before it (whole lines of a note, the fields of an event).
-// An earlier version can be brought back, as a new version.
+// The history of a note, an event, a task, a contact or a bookmark: its versions on the server, newest
+// first, and the one that is chosen, with what changed since the one before it (whole lines of a note,
+// the fields of the others). An earlier version can be brought back, as a new version.
 
 import * as React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -23,11 +23,9 @@ import { useDeviceBreakpoint } from "../helpers";
 import LoadingIndicator from "../widgets/LoadingIndicator";
 import NotFound from "../widgets/NotFound";
 import { diffLines, isOffline, loadVersions, restoreVersion, Version } from "../history";
-import { kindOf } from "../pim/collections";
+import { Kind, kindOf } from "../pim/collections";
 import { DateFormats, useDateFormats } from "../pim/format";
-import { EventType } from "../pim/pim-types";
-import { eventAttendees } from "../pim/occurrences";
-import { repeatName } from "../pim/TasksScreen";
+import { bookmarkFields, contactFields, eventFields, Field, taskFields } from "../pim/historyFields";
 import { Button, Frame } from "../pim/Dialogs";
 import { mono, tint } from "../pim/style";
 
@@ -52,55 +50,16 @@ function when(mtime: number | undefined, fmt: DateFormats) {
   };
 }
 
-// The fields of an event, as the history shows them
-interface Field {
-  label: string;
-  value?: string;
-  list?: string[];
-}
-
-function eventFields(content: string, fmt: DateFormats): Field[] | undefined {
-  let event: EventType;
-  try {
-    event = EventType.parse(content);
-  } catch (e) {
-    return undefined;
-  }
-  const ret: Field[] = [{ label: "Title", value: event.summary || "(no title)" }];
-  try {
-    const start = event.startDate.toJSDate();
-    const allDay = event.startDate.isDate;
-    let end = event.endDate?.toJSDate() ?? start;
-    if (allDay) {
-      // (all day events end at the start of the day after their last one)
-      end = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 1);
-    }
-    const days = (d: Date) => `${fmt.weekDay.format(d)} ${fmt.mediumDate(d)}`;
-    const sameDay = start.toDateString() === end.toDateString();
-    const value = (allDay) ? ((sameDay) ? `${days(start)}, all day` : `${days(start)} – ${days(end)}, all day`) :
-      (sameDay) ? `${days(start)}, ${fmt.time(start)} – ${fmt.time(end)}` : `${days(start)}, ${fmt.time(start)} – ${days(end)}, ${fmt.time(end)}`;
-    const zone = (!allDay) ? (event.startDate.timezone ?? event.startDate.zone?.tzid) : undefined;
-    const here = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    ret.push({ label: "When", value: (zone && (zone !== "floating") && (zone !== here)) ? `${value} (${zone.replace(/_/g, " ")} time shown where you are)` : value });
-  } catch (e) {
-    ret.push({ label: "When", value: "(can't be read)" });
-  }
-  if (event.isRecurring()) {
-    const changed = event.changedTimes.length;
-    ret.push({ label: "Repeats", value: repeatName(event.rrule) + ((changed) ? ` (${changed} ${(changed === 1) ? "time" : "times"} changed on its own)` : "") });
-  }
-  if (event.location) {
-    ret.push({ label: "Location", value: event.location });
-  }
-  const attendees = eventAttendees(event).map((x) => x.name);
-  if (attendees.length > 0) {
-    ret.push({ label: "Attendees", list: attendees });
-  }
-  if (event.description) {
-    ret.push({ label: "Description", value: event.description });
-  }
-  return ret;
-}
+// What the history of each kind of item says it is, the section it's in, what of its meta a version
+// brings back with its content (a note's title is its name, a bookmark is all in its meta), and the
+// fields its versions are shown as (a note is shown as its lines instead)
+const kindInfo: { [kind in Kind]: { noun: string, section: string, backTo: string, metaFields: string[], fields?: (version: Version, fmt: DateFormats) => Field[] | undefined } } = {
+  notes: { noun: "note", section: "Notes", backTo: "note", metaFields: ["name"] },
+  calendar: { noun: "event", section: "Calendar", backTo: "calendar", metaFields: [], fields: (x, fmt) => eventFields(x.content, fmt) },
+  tasks: { noun: "task", section: "Tasks", backTo: "task", metaFields: [], fields: (x, fmt) => taskFields(x.content, fmt) },
+  contacts: { noun: "contact", section: "Contacts", backTo: "contact", metaFields: [], fields: (x, fmt) => contactFields(x.content, fmt) },
+  bookmarks: { noun: "bookmark", section: "Bookmarks", backTo: "bookmark", metaFields: ["name", "url", "description", "tags"], fields: (x) => bookmarkFields(x.meta) },
+};
 
 export default function ItemHistoryScreen(props: PropsType) {
   const { colUid, itemUid } = props.route.params;
@@ -114,8 +73,8 @@ export default function ItemHistoryScreen(props: PropsType) {
   const cachedCol = useSelector((state: StoreState) => state.allCache.collections.get(colUid));
   const cachedItem = useSelector((state: StoreState) => state.allCache.items.get(colUid)?.get(itemUid));
   const kind = (cachedCol) ? kindOf(cachedCol.collectionType) : undefined;
-  const isNote = kind === "notes";
-  const noun = (isNote) ? "note" : "event";
+  const info = (kind) ? kindInfo[kind] : undefined;
+  const noun = info?.noun ?? "item";
 
   const [versions, setVersions] = React.useState<Version[]>();
   const [problem, setProblem] = React.useState<{ offline: boolean, message: string }>();
@@ -146,18 +105,15 @@ export default function ItemHistoryScreen(props: PropsType) {
     // (loaded again when asked to, not each time the item changes)
   }, [etebase, colUid, itemUid, attempt]);
 
-  // The title of the item (a note's is its name, an event's is in it)
+  // The title of the item (a note's is its name, the others' is their first field: an event's title,
+  // a contact's name, …)
   const title = React.useMemo(() => {
     const newest = versions?.find((x) => !x.deleted);
-    if (isNote) {
+    if (!info?.fields) {
       return cachedItem?.meta.name || newest?.name || "Untitled";
     }
-    try {
-      return (newest) ? (EventType.parse(newest.content).summary || "(no title)") : "";
-    } catch (e) {
-      return "";
-    }
-  }, [versions, cachedItem, isNote]);
+    return (newest) ? (info.fields(newest, fmt)?.[0]?.value ?? "") : "";
+  }, [versions, cachedItem, info, fmt]);
 
   React.useEffect(() => {
     navigation.setOptions({ title: (title) ? `History: ${title}` : "History" });
@@ -166,7 +122,7 @@ export default function ItemHistoryScreen(props: PropsType) {
   if (syncGate) {
     return syncGate;
   }
-  if (!cachedCol || !cachedItem || !kind || !["notes", "calendar"].includes(kind)) {
+  if (!cachedCol || !cachedItem || !kind || !info) {
     return <NotFound />;
   }
 
@@ -182,7 +138,7 @@ export default function ItemHistoryScreen(props: PropsType) {
 
   const head = (
     <View style={[styles.head, { borderBottomColor: theme.colors.border }]}>
-      <Text style={[styles.crumbs, muted]} numberOfLines={1}>{(isNote) ? "Notes" : "Calendar"} › {cachedCol.meta.name}</Text>
+      <Text style={[styles.crumbs, muted]} numberOfLines={1}>{info.section} › {cachedCol.meta.name}</Text>
       <View style={styles.titleRow}>
         <Text style={[styles.title, { color: theme.colors.text }]} accessibilityRole="header" numberOfLines={1}>
           {title} <Text style={[styles.title, muted, { fontFamily: fonts.regular }]}>History</Text>
@@ -209,7 +165,7 @@ export default function ItemHistoryScreen(props: PropsType) {
             </Text>
             {!problem.offline && <Text style={[styles.code, { backgroundColor: theme.colors.field, color: theme.colors.textSecondary }]}>{problem.message}</Text>}
             <View style={{ flexDirection: "row", gap: 10, marginTop: 6 }}>
-              <Button label={`Back to ${(isNote) ? "note" : "calendar"}`} onPress={back} />
+              <Button label={`Back to ${info.backTo}`} onPress={back} />
               <Button label="Try again" primary onPress={() => setAttempt(attempt + 1)} />
             </View>
           </View>
@@ -291,7 +247,7 @@ export default function ItemHistoryScreen(props: PropsType) {
         </View>
       )}
       {(shown) ? (
-        <VersionBody version={shown} older={(version.deleted) ? undefined : older} isNote={isNote} fmt={fmt} />
+        <VersionBody version={shown} older={(version.deleted) ? undefined : older} fields={info.fields} fmt={fmt} />
       ) : (
         <Text style={muted}>This version marks the {noun} as deleted, and has nothing to show.</Text>
       )}
@@ -309,7 +265,7 @@ export default function ItemHistoryScreen(props: PropsType) {
           <Button label="Cancel" onPress={() => setRestoreShown(false)} />
           <Button label="Restore" primary onPress={async () => {
             setRestoreShown(false);
-            await restoreVersion(etebase!, colUid, itemUid, shown, isNote);
+            await restoreVersion(etebase!, colUid, itemUid, shown, info.metaFields);
             dispatch(pushMessage({ message: "Restored. It’s now the current version.", severity: "success" }) as any);
             back();
           }} />
@@ -338,15 +294,15 @@ export default function ItemHistoryScreen(props: PropsType) {
 }
 
 // A version, with what changed since the one before it (if there is one to compare with)
-function VersionBody(props: { version: Version, older?: Version, isNote: boolean, fmt: DateFormats }) {
+function VersionBody(props: { version: Version, older?: Version, fields?: (version: Version, fmt: DateFormats) => Field[] | undefined, fmt: DateFormats }) {
   const theme = useTheme();
-  const { version, older, isNote, fmt } = props;
+  const { version, older, fmt } = props;
   const muted = { color: theme.colors.textMuted };
   const compared = !!older && !older.deleted;
 
   let rows: React.ReactNode[];
   let counts = { added: 0, removed: 0, changed: 0 };
-  if (isNote) {
+  if (!props.fields) {
     const titleChanged = compared && (older!.name !== version.name);
     const lines = (compared) ? diffLines(older!.content, version.content) : version.content.split("\n").map((text) => ({ text, change: "same" as const }));
     counts = { added: lines.filter((x) => x.change === "added").length, removed: lines.filter((x) => x.change === "removed").length, changed: (titleChanged) ? 1 : 0 };
@@ -361,8 +317,8 @@ function VersionBody(props: { version: Version, older?: Version, isNote: boolean
       ...lines.map((x, i) => <NoteLine key={i} text={x.text} change={x.change} />),
     ];
   } else {
-    const fields = eventFields(version.content, fmt);
-    const before = (compared) ? eventFields(older!.content, fmt) : undefined;
+    const fields = props.fields(version, fmt);
+    const before = (compared) ? props.fields(older!, fmt) : undefined;
     if (!fields) {
       rows = [<Text key="unreadable" style={muted}>This version can’t be read.</Text>];
     } else {

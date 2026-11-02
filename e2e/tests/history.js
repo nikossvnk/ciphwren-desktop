@@ -1,19 +1,21 @@
-// The history of notes and events: their versions on the server (made here by saving them on the
-// server a few times), what changed since the one before, bringing back an earlier one (checked on
-// the server: it's the item's content and title again, as a new version), and what's shown offline.
+// The history of notes, events, tasks, contacts and bookmarks: their versions on the server (made here
+// by saving them on the server a few times), what changed since the one before, bringing back an
+// earlier one (checked on the server: it's the item's content and title again, as a new version), and
+// what's shown offline.
 // It uses an account of its own (made for each run).
 const { launch, session, run, check, Etebase, unique, newAccount, waitFor, collectionOf, sleep } = require("../lib");
 
-const types = { notes: "etebase.md.note", calendar: "etebase.vevent" };
+const types = { notes: "etebase.md.note", calendar: "etebase.vevent", tasks: "etebase.vtodo", contacts: "etebase.vcard", bookmarks: "etebase.bookmark" };
 
-// Saves an item on the server once for each of its versions (each is a revision), a second apart
+// Saves an item on the server once for each of its versions (each is a revision), a second apart. A
+// version can have more meta than its name (a bookmark is all in its meta).
 async function addVersions(etebase, col, versions) {
   const itemMgr = etebase.getCollectionManager().getItemManager(col);
-  const item = await itemMgr.create({ name: versions[0].name, mtime: Date.now() }, versions[0].content);
+  const item = await itemMgr.create({ name: versions[0].name, mtime: Date.now(), ...versions[0].meta }, versions[0].content);
   await itemMgr.batch([item]);
   for (const v of versions.slice(1)) {
     await sleep(1100);
-    item.setMeta({ ...item.getMeta(), name: v.name, mtime: Date.now() });
+    item.setMeta({ ...item.getMeta(), name: v.name, mtime: Date.now(), ...v.meta });
     await item.setContent(v.content);
     await itemMgr.batch([item]);
   }
@@ -25,7 +27,7 @@ async function serverItem(etebase, col, uid) {
   const itemMgr = etebase.getCollectionManager().getItemManager(col);
   const item = await itemMgr.fetch(uid);
   const revisions = await itemMgr.itemRevisions(item, { limit: 50 });
-  return { name: item.getMeta().name, content: await item.getContent(Etebase.OutputFormat.String), versions: revisions.data.length };
+  return { name: item.getMeta().name, meta: item.getMeta(), content: await item.getContent(Etebase.OutputFormat.String), versions: revisions.data.length };
 }
 
 let last;
@@ -38,6 +40,22 @@ const ics = (uid, title, location) => [
   `DTSTART:${icalDate(new Date())}T110000`, `DTEND:${icalDate(new Date())}T120000`, `SUMMARY:${title}`, `LOCATION:${location}`,
   "END:VEVENT", "END:VCALENDAR", "",
 ].join("\r\n");
+const vtodo = (uid, title, lines) => [
+  "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//e2e", "BEGIN:VTODO", `UID:${uid}`, `SUMMARY:${title}`, ...lines, "END:VTODO", "END:VCALENDAR", "",
+].join("\r\n");
+const vcard = (uid, name, lines) => ["BEGIN:VCARD", "VERSION:4.0", `UID:${uid}`, `FN:${name}`, ...lines, "END:VCARD", ""].join("\r\n");
+
+// The bookmark list of the account (made here, as the first run doesn't make one)
+async function bookmarkList(etebase) {
+  const colMgr = etebase.getCollectionManager();
+  const found = (await colMgr.list([types.bookmarks], { limit: 50 })).data.find((x) => !x.isDeleted);
+  if (found) {
+    return found;
+  }
+  const col = await colMgr.create(types.bookmarks, { name: "Bookmarks", mtime: Date.now() }, "");
+  await colMgr.upload(col);
+  return col;
+}
 
 run(async () => {
   const n = unique();
@@ -125,6 +143,62 @@ run(async () => {
   await A.ctx.setOffline(false); await wait(1000);
   await btn(/^try again$/i).click(); await wait(4000);
   check("and loads it when asked to again, online", await p.getByRole("button", { name: /^Version of / }).locator("visible=true").count() === 3, await A.text());
+
+  // A task that got a priority and a tag, from its details
+  const tasks = await collectionOf(etebase, types.tasks);
+  const taskUid = `invoice-${n}`;
+  const taskItem = await addVersions(etebase, tasks, [
+    { name: taskUid, content: vtodo(taskUid, `Invoice ${n}`, []) },
+    { name: taskUid, content: vtodo(taskUid, `Invoice ${n}`, ["PRIORITY:1", "CATEGORIES:money"]) },
+  ]);
+  await sideRow("Tasks").click(); await wait(3000);
+  await btn(/^sync$/i).click(); await wait(5000);
+  await p.getByRole("button", { name: `Task Invoice ${n}` }).click(); await wait(1500);
+  await p.locator('[data-testid="task-details"] >> visible=true').getByRole("button", { name: "History" }).click(); await wait(4000);
+  const task = await shown();
+  check("the history of a task shows the fields added", task.includes("Priority") && task.includes("High") && task.includes("Tags") && task.includes("+ money") &&
+    task.includes("+ 2 added") && task.includes("Status") && task.includes("Not done"), task);
+  await versionRow(1).click(); await wait(800);
+  await btn(/^restore this version$/i).click(); await wait(800);
+  await dialog.getByRole("button", { name: "Restore", exact: true }).click(); await wait(3000);
+  check("restoring a task puts its earlier content back on the server", await waitForItem(etebase, tasks, taskItem, (x) =>
+    !x.content.includes("PRIORITY:1") && !x.content.includes("CATEGORIES") && (x.versions === 3)), JSON.stringify(last));
+
+  // A contact whose email changed, from the button next to "Edit contact"
+  const contacts = await collectionOf(etebase, types.contacts);
+  const contactUid = `maya-${n}`;
+  await addVersions(etebase, contacts, [
+    { name: contactUid, content: vcard(contactUid, `Maya ${n} Kowalski`, ["EMAIL:maya@studio-k.example", "ORG:Studio K"]) },
+    { name: contactUid, content: vcard(contactUid, `Maya ${n} Kowalski`, ["EMAIL:maya@work.example", "ORG:Studio K", "TEL;TYPE=cell:+49 30 5550 1377"]) },
+  ]);
+  await sideRow("Contacts").click(); await wait(3000);
+  await btn(/^sync$/i).click(); await wait(5000);
+  await p.getByRole("button", { name: `Contact Maya ${n} Kowalski` }).click(); await wait(2000);
+  await btn(/^history$/i).click(); await wait(4000);
+  const contact = await shown();
+  check("the history of a contact shows the email that changed and the phone added", contact.includes("Email") && contact.includes("+ maya@work.example") &&
+    contact.includes("− maya@studio-k.example") && contact.includes("+ +49 30 5550 1377 · cell") && contact.includes("Organisation"), contact);
+  check("under its name and address book", (await A.text()).replace(/\s+/g, " ").includes(`Maya ${n} Kowalski History`) && (await A.text()).includes("Contacts ›"), await A.text());
+
+  // A bookmark whose title and note changed: it's all in its meta, which restoring brings back
+  const bookmarks = await bookmarkList(etebase);
+  const url = `https://example.com/article-${n}`;
+  const bookmarkItem = await addVersions(etebase, bookmarks, [
+    { name: `Article ${n}`, content: url, meta: { url, created: Date.now(), tags: ["read"] } },
+    { name: `Good article ${n}`, content: url, meta: { url, description: "For the weekend", tags: ["read"] } },
+  ]);
+  await sideRow("Bookmarks").click(); await wait(3000);
+  await btn(/^sync$/i).click(); await wait(5000);
+  await p.locator('[data-testid="bookmark-list"] >> visible=true').getByRole("button", { name: `Bookmark Good article ${n}` }).click(); await wait(800);
+  await p.locator('[data-testid="bookmark-panel"] >> visible=true').getByRole("button", { name: "History" }).click(); await wait(4000);
+  const bookmark = await shown();
+  check("the history of a bookmark shows its title that changed and the note added", bookmark.includes(`Good article ${n}`) && bookmark.includes(`was Article ${n}`) &&
+    bookmark.includes("For the weekend") && bookmark.includes("Added"), bookmark);
+  await versionRow(1).click(); await wait(800);
+  await btn(/^restore this version$/i).click(); await wait(800);
+  await dialog.getByRole("button", { name: "Restore", exact: true }).click(); await wait(3000);
+  check("restoring a bookmark brings back its title and note, and keeps its link and tags", await waitForItem(etebase, bookmarks, bookmarkItem, (x) =>
+    (x.name === `Article ${n}`) && !x.meta.description && (x.meta.url === url) && (x.meta.tags?.[0] === "read") && (x.versions === 3)), JSON.stringify(last));
 
   await b.close();
 });

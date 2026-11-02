@@ -78,7 +78,10 @@ export default function TaskEditScreen(props: PropsType) {
     navigation.setOptions({
       title: (itemUid) ? "Edit Task" : "New Task",
       headerRight: () => (itemUid) ? (
-        <AppbarAction icon="delete" accessibilityLabel="Delete" onPress={() => setDeleteShown(true)} />
+        <View style={{ flexDirection: "row" }}>
+          <AppbarAction icon="history" accessibilityLabel="History" onPress={() => navigation.navigate("ItemHistory", { colUid, itemUid })} />
+          <AppbarAction icon="delete" accessibilityLabel="Delete" onPress={() => setDeleteShown(true)} />
+        </View>
       ) : null,
     });
   }, [itemUid]);
