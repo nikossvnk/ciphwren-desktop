@@ -9,7 +9,7 @@ import * as React from "react";
 import { Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
 import { IconButton, Snackbar, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { RouteProp } from "@react-navigation/native";
+import { RouteProp, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useCredentials } from "../credentials";
@@ -250,6 +250,7 @@ interface PanelProps {
 // The panel next to the list: the chosen bookmark, to change it, or a new one
 function BookmarkPanel(props: PanelProps) {
   const theme = useTheme();
+  const navigation = useNavigation<any>();
   const etebase = useCredentials()!;
   const dispatch = useDispatch();
   const fmt = useDateFormats();
@@ -351,6 +352,8 @@ function BookmarkPanel(props: PanelProps) {
               <IconButton icon="content-copy" size={16} accessibilityLabel="Copy link" iconColor={theme.colors.text} containerColor="transparent"
                 onPress={() => copyLink(dispatch, url)} style={[styles.iconButton, { borderColor: theme.colors.border, borderWidth: 1 }]} />
             )}
+            <IconButton icon="history" size={16} accessibilityLabel="History" iconColor={theme.colors.text} containerColor="transparent"
+              onPress={() => navigation.navigate("ItemHistory", { colUid: bookmark.colUid, itemUid: bookmark.uid })} style={[styles.iconButton, { borderColor: theme.colors.border, borderWidth: 1 }]} />
           </>
         )}
         {props.onClose && (

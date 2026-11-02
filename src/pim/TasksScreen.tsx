@@ -7,7 +7,6 @@ import { IconButton, Snackbar, Text, TouchableRipple } from "react-native-paper"
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
-import * as ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { useCredentials } from "../credentials";
@@ -29,7 +28,7 @@ import { reminderLabel, remindersOf } from "./reminders";
 import { panelStyle, SmallButton } from "./CalendarParts";
 import {
   compareDoneTasks, compareOpenTasks, groupTasks, parseQuickAdd, priorities, Priority, priorityLabels, priorityOf,
-  priorityTitle, setPriority, TaskGroupBy,
+  priorityTitle, repeatName, setPriority, TaskGroupBy,
 } from "./tasks";
 
 export function formatDue(task: TaskType, fmt: DateFormats) {
@@ -47,18 +46,6 @@ export function formatDue(task: TaskType, fmt: DateFormats) {
 // "High", "Medium", "Low" or "None"
 export function priorityName(task: TaskType) {
   return priorityLabels[priorityOf(task)];
-}
-
-// How a repeat rule reads, e.g. "Every week" or "Every 2 days"
-export function repeatName(rule: ICAL.Recur | undefined | null) {
-  if (!rule) {
-    return "Doesn't repeat";
-  }
-  const units: { [freq: string]: string } = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" };
-  const json = (rule as any).toJSON?.() ?? {};
-  const unit = units[json.freq] ?? json.freq?.toLowerCase();
-  const interval = json.interval ?? 1;
-  return (interval > 1) ? `Every ${interval} ${unit}s` : `Every ${unit}`;
 }
 
 // Marks a task as done (or not done). Repeating tasks get their next time as a new task, like in the
@@ -260,6 +247,7 @@ function TaskRow(props: RowProps) {
 // The details of the chosen task, next to the list on wide screens
 function TaskDetails(props: { task: TaskType, list?: PimCollection, subtasks: TaskType[], fmt: DateFormats, onToggle: (task: TaskType) => void, onEdit: () => void, onClose: () => void }) {
   const theme = useTheme();
+  const navigation = useNavigation<any>();
   const etebase = useCredentials()!;
   const { task, fmt, subtasks } = props;
   const [newSub, setNewSub] = React.useState("");
@@ -287,6 +275,8 @@ function TaskDetails(props: { task: TaskType, list?: PimCollection, subtasks: Ta
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
         <SmallButton icon={(task.finished) ? "checkbox-blank-outline" : "check"} label={(task.finished) ? "Mark as not done" : "Mark complete"} onPress={() => props.onToggle(task)} />
         <View style={{ flex: 1 }} />
+        <IconButton icon="history" size={18} accessibilityLabel="History" iconColor={theme.colors.textSecondary} containerColor="transparent"
+          onPress={() => navigation.navigate("ItemHistory", { colUid: task.collectionUid, itemUid: task.itemUid })} style={{ margin: 0 }} />
         <IconButton icon="pencil-outline" size={18} accessibilityLabel="Edit task" iconColor={theme.colors.textSecondary} containerColor="transparent" onPress={props.onEdit} style={{ margin: 0 }} />
         <IconButton icon="close" size={18} accessibilityLabel="Close details" iconColor={theme.colors.textSecondary} containerColor="transparent" onPress={props.onClose} style={{ margin: 0 }} />
       </View>

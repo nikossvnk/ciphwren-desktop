@@ -154,6 +154,7 @@ function ContactDetails(props: { contact: ContactType }) {
           <Action icon="phone-outline" label="Call" onPress={(phone) ? () => openExternalUrl(`tel:${phone.replace(/\s/g, "")}`) : undefined} />
           <Action icon="calendar-plus" label="Schedule" onPress={() => navigation.navigate("EventEdit", { title: `With ${name}`, attendeeName: name, attendeeEmail: email })} />
           <Action icon="pencil-outline" label="Edit contact" iconOnly onPress={() => navigation.navigate("ContactEdit", { colUid: contact.collectionUid, itemUid: contact.itemUid })} />
+          <Action icon="history" label="History" iconOnly onPress={() => navigation.navigate("ItemHistory", { colUid: contact.collectionUid, itemUid: contact.itemUid })} />
         </View>
       </View>
 
