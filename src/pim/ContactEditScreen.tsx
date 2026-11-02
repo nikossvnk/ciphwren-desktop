@@ -76,7 +76,10 @@ export default function ContactEditScreen(props: PropsType) {
     navigation.setOptions({
       title: (itemUid) ? "Edit Contact" : "New Contact",
       headerRight: () => (itemUid) ? (
-        <AppbarAction icon="delete" accessibilityLabel="Delete" onPress={() => setDeleteShown(true)} />
+        <View style={{ flexDirection: "row" }}>
+          <AppbarAction icon="history" accessibilityLabel="History" onPress={() => navigation.navigate("ItemHistory", { colUid, itemUid })} />
+          <AppbarAction icon="delete" accessibilityLabel="Delete" onPress={() => setDeleteShown(true)} />
+        </View>
       ) : null,
     });
   }, [itemUid]);
