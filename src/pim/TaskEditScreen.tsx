@@ -20,10 +20,11 @@ import Checkbox from "../widgets/Checkbox";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import AppbarAction from "../widgets/AppbarAction";
 import * as C from "../constants";
-import { TaskStatusType, TaskType, utcNow } from "./pim-types";
+import { EventType, TaskStatusType, TaskType, utcNow } from "./pim-types";
 import { priorityName } from "./TasksScreen";
 import { useTheme } from "../theme";
 import { deletePimItem, savePimItem, usePimCollections, usePimItems } from "./data";
+import { deleteTaskEvents, linkedEventUid, updateTaskEvent, writableCalendar } from "./taskEvents";
 import { updateSeries } from "./recurrence";
 import { Reminder, reminderKey, remindersOf, setReminders } from "./reminders";
 import { AccentButton, applyRepeat, CollectionPicker, DateTimeInput, Field, FieldInput, fromDateTimeStrings, pimStyles, ReminderPicker, RepeatKey, repeatKeyOf, RepeatPicker, toDateString } from "./widgets";
@@ -41,6 +42,9 @@ export default function TaskEditScreen(props: PropsType) {
   const syncGate = useSyncGate();
   const lists = usePimCollections(C.tasksType);
   const tasks = usePimItems(etebase, C.tasksType, TaskType.parse);
+  const events = usePimItems(etebase, C.calendarType, EventType.parse);
+  const allCalendars = usePimCollections(C.calendarType);
+  const calendars = React.useMemo(() => allCalendars.filter((x) => writableCalendar(etebase, x.colUid)), [allCalendars, etebase]);
   const existing = (itemUid) ? tasks?.find((x) => (x.itemUid === itemUid) && (x.collectionUid === colUid)) : undefined;
 
   const [loaded, setLoaded] = React.useState(false);
@@ -53,12 +57,16 @@ export default function TaskEditScreen(props: PropsType) {
   const [repeat, setRepeat] = React.useState<RepeatKey>("none");
   const [reminders, setRemindersState] = React.useState<Reminder[]>([]);
   const [error, setError] = React.useState<string>();
+  // An event in the calendar on the due day, and the calendar it's in
+  const [addToCalendar, setAddToCalendar] = React.useState(false);
+  const [calendar, setCalendar] = React.useState<string>();
   const [deleteShown, setDeleteShown] = React.useState(false);
 
   React.useEffect(() => {
-    if (loaded || !tasks) {
+    if (loaded || !tasks || !events) {
       return;
     }
+    setCalendar(calendars[0]?.colUid);
     if (existing) {
       setTitle(existing.title ?? "");
       setList(existing.collectionUid);
@@ -68,11 +76,17 @@ export default function TaskEditScreen(props: PropsType) {
       setPriority(priorityName(existing));
       setRepeat(repeatKeyOf(existing.isRecurring() ? existing.rrule : null));
       setRemindersState(remindersOf(existing.component));
+      const eventUid = linkedEventUid(existing);
+      const event = (eventUid) ? events.find((x) => (x.uid === eventUid) && calendars.some((c) => c.colUid === x.collectionUid)) : undefined;
+      if (event) {
+        setAddToCalendar(true);
+        setCalendar(event.collectionUid);
+      }
     } else {
       setList(colUid ?? lists[0]?.colUid);
     }
     setLoaded(true);
-  }, [tasks, existing, loaded]);
+  }, [tasks, events, existing, loaded]);
 
   React.useEffect(() => {
     navigation.setOptions({
@@ -89,7 +103,7 @@ export default function TaskEditScreen(props: PropsType) {
   if (syncGate) {
     return syncGate;
   }
-  if (!tasks || !loaded) {
+  if (!tasks || !events || !loaded) {
     return <LoadingIndicator />;
   }
   if (itemUid && !existing) {
@@ -161,6 +175,8 @@ export default function TaskEditScreen(props: PropsType) {
     task.lastModified = utcNow();
 
     try {
+      // (its event in the calendar first, which sets the task's link to it)
+      await updateTaskEvent(etebase, task, existing, (addToCalendar && dueDate && calendar) ? calendar : null);
       await savePimItem(etebase, list, task);
       dispatch(pushMessage({ message: (existing) ? "Task saved" : "Task created", severity: "success" }) as any);
       goUp(navigation, props.route);
@@ -171,6 +187,7 @@ export default function TaskEditScreen(props: PropsType) {
 
   async function remove() {
     setDeleteShown(false);
+    await deleteTaskEvents(etebase, [existing!]);
     await deletePimItem(etebase, existing!);
     dispatch(pushMessage({ message: "Task deleted", severity: "success" }) as any);
     goUp(navigation, props.route);
@@ -191,6 +208,16 @@ export default function TaskEditScreen(props: PropsType) {
             {!!due && <Text onPress={() => setDue("")} style={{ textDecorationLine: "underline" }}>Clear</Text>}
           </View>
         </Field>
+        {!!due && (calendars.length > 0) && (
+          <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10, marginHorizontal: -16, marginBottom: 6 }}>
+            <Checkbox title="Add to calendar" status={addToCalendar} onPress={() => setAddToCalendar(!addToCalendar)} />
+            {addToCalendar && (calendars.length > 1) && (
+              <View style={{ flex: 1, minWidth: 200, marginRight: 16 }}>
+                <CollectionPicker label="Calendar" collections={calendars} value={calendar} onChange={setCalendar} />
+              </View>
+            )}
+          </View>
+        )}
         <Field label="Reminders">
           <ReminderPicker value={reminders} onChange={setRemindersState} allDay={!existing?.dueDate || existing.dueDate.isDate} isTask />
         </Field>

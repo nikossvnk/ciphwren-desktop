@@ -19,6 +19,7 @@ import { fonts, useTheme } from "../theme";
 import * as C from "../constants";
 import { TaskStatusType, TaskType, utcNow } from "./pim-types";
 import { deletePimItem, deletePimItems, PimCollection, savePimItem, usePimCollections, usePimItems } from "./data";
+import { deleteTaskEvents, nextTaskEvent, updateTaskEvent } from "./taskEvents";
 import { AccentButton, EmptyState } from "./widgets";
 import { DateFormats, useDateFormats } from "./format";
 import { useDialogs } from "./Dialogs";
@@ -49,7 +50,7 @@ export function priorityName(task: TaskType) {
 }
 
 // Marks a task as done (or not done). Repeating tasks get their next time as a new task, like in the
-// web app.
+// web app; when the done one has an event in the calendar, the next one gets one of its own.
 export async function setTaskDone(etebase: Parameters<typeof savePimItem>[0], task: TaskType, done: boolean) {
   const changed = task.clone();
   changed.collectionUid = task.collectionUid;
@@ -57,10 +58,12 @@ export async function setTaskDone(etebase: Parameters<typeof savePimItem>[0], ta
   changed.status = (done) ? TaskStatusType.Completed : TaskStatusType.NeedsAction;
   changed.completionDate = (done) ? utcNow() : undefined;
   changed.lastModified = utcNow();
+  const calendar = await updateTaskEvent(etebase, changed, task);
   await savePimItem(etebase, task.collectionUid!, changed);
 
   const next = (done) ? task.getNextOccurence() : null;
   if (next) {
+    await nextTaskEvent(etebase, next, calendar);
     await savePimItem(etebase, task.collectionUid!, next);
   }
   return next;
@@ -72,8 +75,10 @@ async function undoDone(etebase: Parameters<typeof savePimItem>[0], task: TaskTy
   changed.collectionUid = task.collectionUid;
   changed.itemUid = task.itemUid;
   changed.lastModified = utcNow();
+  await updateTaskEvent(etebase, changed);
   await savePimItem(etebase, task.collectionUid!, changed);
   if (next) {
+    await deleteTaskEvents(etebase, [next]);
     await deletePimItem(etebase, next);
   }
 }
@@ -441,7 +446,9 @@ export default function TasksScreen() {
     setDeleteDoneShown(false);
     setJustDone(undefined);
     const doneUids = new Set(doneShown.map((x) => x.uid));
-    await deletePimItems(etebase, [...doneShown, ...all.filter((x) => x.finished && x.relatedTo && doneUids.has(x.relatedTo))]);
+    const deleted = [...doneShown, ...all.filter((x) => x.finished && x.relatedTo && doneUids.has(x.relatedTo))];
+    await deleteTaskEvents(etebase, deleted);
+    await deletePimItems(etebase, deleted);
     dispatch(pushMessage({ message: `${doneShown.length} completed ${(doneShown.length === 1) ? "task" : "tasks"} deleted`, severity: "success" }) as any);
   }
 

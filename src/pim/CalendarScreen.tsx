@@ -26,6 +26,7 @@ import TimeGrid, { mono, tint } from "./TimeGrid";
 import { addDays, dayCount, isBar, layoutBars, Occurrence, onDay, sameDay, startOfDay, useOccurrences } from "./occurrences";
 import { Agenda, DayPanel, EventDetails, MiniMonth, panelStyle, SmallButton, SpanBar, TasksDue } from "./CalendarParts";
 import { setTaskDone } from "./TasksScreen";
+import { linkedEventUid } from "./taskEvents";
 
 type CalendarView = "month" | "week" | "day" | "agenda";
 const views: { key: CalendarView, label: string }[] = [
@@ -305,7 +306,9 @@ export default function CalendarScreen() {
   if (view === "week" || view === "day") {
     const selectedOccurrence = occurrences.find((x) => x.key === selectedKey);
     const dayEvents = (view === "day") ? onDay(occurrences, selected) : [];
-    const dueTasks = (tasks ?? []).filter((t) => t.dueDate && sameDay(t.dueDate.toJSDate(), selected));
+    // (a task whose event is on the day is shown by its event)
+    const dayEventUids = new Set(dayEvents.map((x) => x.event?.uid).filter((x) => x !== undefined));
+    const dueTasks = (tasks ?? []).filter((t) => t.dueDate && sameDay(t.dueDate.toJSDate(), selected) && !dayEventUids.has(linkedEventUid(t) ?? ""));
     const grid = (
       <TimeGrid
         days={days}
