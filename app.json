@@ -18,16 +18,8 @@
       "favicon": "./assets/favicon.png",
       "themeColor": "#ffc107"
     },
-    "android": {
-      "package": "com.etesync.notes",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#424242"
-      }
-    },
     "platforms": [
       "ios",
-      "android",
       "web"
     ],
     "plugins": [

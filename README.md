@@ -6,7 +6,7 @@ themselves are not changed.
 
 - **The base is etesync-notes**: its UI (react-native-paper, the sidebar, the theme), its offline-first
   sync (changes are kept on the device and pushed later, conflicts are resolved) and its screens.
-  It's still a React Native app, so it builds for the web and, in principle, for Android and iOS.
+  It's still a React Native app; it's built for the web only (the Android app is etesync-notes).
 - **From etesync-web** comes the logic, not the UI: the calendar, task and contact model
   (`src/pim/pim-types.ts`, iCalendar and vCard through ical.js, with the time zones), how items are
   made and changed (UIDs, all day events ending on the next day, repeating tasks getting their next

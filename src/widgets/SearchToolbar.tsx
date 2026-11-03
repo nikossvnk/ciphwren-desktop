@@ -46,7 +46,6 @@ export default function SearchToolbar(props: PropsType) {
         style={[styles.input, { color: textColor }]}
         placeholderTextColor={theme.colors.placeholder}
         selectionColor={theme.colors.primary}
-        underlineColorAndroid="transparent"
         returnKeyType="search"
         keyboardAppearance={theme.dark ? "dark" : "light"}
         accessibilityRole="search"
