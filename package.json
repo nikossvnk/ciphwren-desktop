@@ -41,7 +41,7 @@
     "react-native": "0.88.1",
     "react-native-etebase": "https://github.com/nikossvnk/etebase-js/releases/download/v0.44.1/react-native-etebase-0.44.1.tgz",
     "react-native-gesture-handler": "~3.3.0",
-    "react-native-get-random-values": "^1.10.0",
+    "react-native-get-random-values": "^2.1.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-markdown-display": "^7.0.0",
     "react-native-paper": "^5.12.0",
