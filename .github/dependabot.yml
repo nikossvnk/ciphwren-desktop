@@ -1,5 +1,4 @@
-# Opens pull requests to update the dependencies. No workflow checks pull requests here yet, so
-# try an update before merging it.
+# Opens pull requests to update the dependencies. The workflow (check.yml) checks each one.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -7,6 +6,11 @@ updates:
     schedule:
       interval: weekly
     groups:
+      # ESLint and its rules come out together, and a new major version of one needs the other's
+      # (one pull request each fails to install), so they're one pull request, majors too. (A
+      # package goes to the first group it matches.)
+      eslint:
+        patterns: ["eslint", "@eslint/js"]
       npm:
         patterns: ["*"]
         update-types: [minor, patch]

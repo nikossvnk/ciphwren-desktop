@@ -62,7 +62,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@eslint/js": "^9.39.5",
+    "@eslint/compat": "^2.1.1",
+    "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/color": "^4.0.0",
     "@types/highlight-words-core": "^1.2.0",
@@ -71,8 +72,8 @@
     "@types/redux-actions": "^2.6.5",
     "@typescript/native": "npm:typescript@^7.0.2",
     "babel-preset-expo": "~57.0.0",
-    "eslint": "^9.0.0",
-    "eslint-plugin-react": "^7.21.2",
+    "eslint": "^10.0.0",
+    "eslint-plugin-react": "^7.37.5",
     "globals": "^17.13.0",
     "patch-package": "^8.0.1",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
@@ -81,6 +82,9 @@
   "overrides": {
     "react-native-markdown-display": {
       "markdown-it": "^14.3.2"
+    },
+    "eslint-plugin-react": {
+      "eslint": "$eslint"
     }
   }
 }

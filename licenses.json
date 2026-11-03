@@ -215,6 +215,11 @@
       "publisher": "The Babel Team",
       "url": "https://babel.dev/team"
     },
+    "@eslint/compat": {
+      "licenses": "Apache-2.0",
+      "repository": "https://github.com/eslint/rewrite",
+      "publisher": "Nicholas C. Zakas"
+    },
     "@eslint/js": {
       "licenses": "MIT",
       "repository": "https://github.com/eslint/eslint"

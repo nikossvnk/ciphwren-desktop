@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import js from "@eslint/js";
+import { fixupConfigRules } from "@eslint/compat";
 import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
 import stylistic from "@stylistic/eslint-plugin";
@@ -13,8 +14,10 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  react.configs.flat.recommended,
-  react.configs.flat["jsx-runtime"],
+  // eslint-plugin-react 7.37 still calls context.getFilename() and other methods that ESLint 10
+  // removed (jsx-eslint/eslint-plugin-react#4022): fixupConfigRules adds them back. Drop it (and
+  // the "overrides" entry of package.json) once a release supports ESLint 10.
+  ...fixupConfigRules([react.configs.flat.recommended, react.configs.flat["jsx-runtime"]]),
   {
     settings: {
       react: {
