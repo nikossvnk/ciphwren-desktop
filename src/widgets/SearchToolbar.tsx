@@ -1,5 +1,5 @@
 import * as React from "react";
-import { I18nManager, StyleSheet, TextInput } from "react-native";
+import { I18nManager, StyleSheet, TextInput, TextInputInstance } from "react-native";
 import { Appbar } from "react-native-paper";
 import { fonts, useTheme } from "../theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,7 +16,7 @@ export default function SearchToolbar(props: PropsType) {
   const { value, onChangeText } = props;
   const theme = useTheme();
   const textColor = theme.colors.text;
-  const inputRef = React.useRef<TextInput>(null);
+  const inputRef = React.useRef<TextInputInstance>(null);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();

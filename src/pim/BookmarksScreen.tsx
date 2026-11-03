@@ -6,7 +6,7 @@
 // The same bookmarks as the ones of EteSync Notes on Android.
 
 import * as React from "react";
-import { Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
+import { Platform, ScrollView, StyleSheet, TextInput, View, ViewInstance, useWindowDimensions } from "react-native";
 import { IconButton, Snackbar, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -440,7 +440,7 @@ function QuickSave(props: { onSave: (url: string) => Promise<boolean>, listName?
   const [value, setValue] = React.useState("");
   const [dragging, setDragging] = React.useState(false);
   const [error, setError] = React.useState<string>();
-  const ref = React.useRef<View>(null);
+  const ref = React.useRef<ViewInstance>(null);
 
   async function submit(text: string) {
     const url = findUrl(text) ?? text.trim();

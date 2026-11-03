@@ -5,7 +5,7 @@
 // a notebook or a bookmark list), importing files (choose, review, done), and the keyboard shortcuts
 
 import * as React from "react";
-import { Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
+import { Platform, ScrollView, StyleSheet, TextInput, TextInputInstance, View, ViewInstance, useWindowDimensions } from "react-native";
 import { Modal, Portal, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
@@ -273,7 +273,7 @@ export function Labelled(props: React.PropsWithChildren<{ label: string, optiona
   );
 }
 
-export const DialogInput = React.forwardRef(function DialogInput(props: React.ComponentProps<typeof TextInput>, ref: React.Ref<TextInput>) {
+export const DialogInput = React.forwardRef(function DialogInput(props: React.ComponentProps<typeof TextInput>, ref: React.Ref<TextInputInstance>) {
   const theme = useTheme();
   const [focused, setFocused] = React.useState(false);
   const { style, onFocus, onBlur, ...rest } = props;
@@ -457,7 +457,7 @@ function ImportDialog(props: { colUid?: string, onClose: () => void }) {
   const [results, setResults] = React.useState<KindResult[]>();
   const [error, setError] = React.useState<string>();
   const [dragging, setDragging] = React.useState(false);
-  const dropRef = React.useRef<View>(null);
+  const dropRef = React.useRef<ViewInstance>(null);
 
   // (a read only collection can't be imported into)
   const writable = (kind: Kind) => collections.filter((x) => (x.kind === kind) && (x.accessLevel !== Etebase.CollectionAccessLevel.ReadOnly));

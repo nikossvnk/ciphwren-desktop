@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
-import { TextInput as NativeTextInput, View } from "react-native";
+import { TextInputInstance, View } from "react-native";
 
 import { validateServerUrl } from "../helpers";
 import { AuthField, PasswordField, PrimaryButton, ServerBox, UsernameField } from "./Auth";
@@ -24,7 +24,7 @@ export default function LoginForm(props: PropsType) {
   const [server, setServer] = React.useState("");
   const [errors, setErrors] = React.useState<FormErrors>({});
 
-  const passwordRef = React.useRef<NativeTextInput>(null);
+  const passwordRef = React.useRef<TextInputInstance>(null);
 
   function onSubmit() {
     const serverUrl = server.trim();

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TextInput as NativeTextInput } from "react-native";
+import { TextInputInstance } from "react-native";
 import { Button, HelperText } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -97,8 +97,8 @@ export default function ChangePasswordScreen() {
     });
   }
 
-  const newPasswordRef = React.createRef<NativeTextInput>();
-  const confirmPasswordRef = React.createRef<NativeTextInput>();
+  const newPasswordRef = React.createRef<TextInputInstance>();
+  const confirmPasswordRef = React.createRef<TextInputInstance>();
 
   return (
     <ScrollView keyboardAware>
