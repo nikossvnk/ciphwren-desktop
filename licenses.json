@@ -42,9 +42,8 @@
     },
     "etebase": {
       "licenses": "BSD-3-Clause",
-      "repository": "https://github.com/etesync/etesync-js",
-      "publisher": "Tom Hacohen",
-      "url": "https://stosb.com"
+      "repository": "https://github.com/nikossvnk/etebase-js",
+      "publisher": "Tom Hacohen"
     },
     "expo": {
       "licenses": "MIT",
@@ -83,7 +82,7 @@
     },
     "ical.js": {
       "licenses": "MPL-2.0",
-      "repository": "https://github.com/mozilla-comm/ical.js",
+      "repository": "https://github.com/kewisch/ical.js",
       "publisher": "Philipp Kewisch"
     },
     "immutable": {
@@ -120,9 +119,8 @@
     },
     "react-native-etebase": {
       "licenses": "LGPL-3.0-only",
-      "repository": "https://github.com/etesync/etesync-js",
-      "publisher": "Tom Hacohen",
-      "url": "https://stosb.com"
+      "repository": "https://github.com/nikossvnk/etebase-js",
+      "publisher": "Tom Hacohen"
     },
     "react-native-gesture-handler": {
       "licenses": "MIT",

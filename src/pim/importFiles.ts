@@ -7,13 +7,14 @@
 // everything else.
 
 import * as Etebase from "etebase";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { store } from "../store";
 import { saveItemsLocally } from "../sync/SyncManager";
 import { loadCollection } from "../cached";
 import { createCollection, Kind, kinds } from "./collections";
+import { timeValue } from "./pim-types";
 import { BookmarkMetadata, comparableUrl, metaOf, ParsedBookmark, readBookmarksHtml } from "../bookmarks";
 
 export interface ImportFile {
@@ -103,7 +104,7 @@ function readCalendar(file: ImportFile, parsed: Parsed) {
         const line = lineOf(file.text, `UID:${id}`) ?? lineOf(file.text, `SUMMARY:${title}`);
         let date: Date | undefined;
         try {
-          const time = main.getFirstPropertyValue((kind === "calendar") ? "dtstart" : "due") ?? main.getFirstPropertyValue("dtstart");
+          const time = timeValue(main.getFirstPropertyValue((kind === "calendar") ? "dtstart" : "due") ?? main.getFirstPropertyValue("dtstart"));
           if ((kind === "calendar") && !time) {
             parsed.unreadable.push({ file: file.name, what, reason: "has no start date", line });
             continue;

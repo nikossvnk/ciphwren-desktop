@@ -28,7 +28,7 @@ import { formatDue } from "./TasksScreen";
 import { formatRange } from "./CalendarParts";
 
 export function contactName(contact: ContactType) {
-  return (contact.fn as string | undefined)?.trim() || "(no name)";
+  return contact.fn?.trim() || "(no name)";
 }
 
 function Avatar(props: { name: string, size: number }) {

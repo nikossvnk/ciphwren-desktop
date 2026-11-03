@@ -3,9 +3,9 @@
 
 // The priorities of tasks, and how the task list sorts, groups and filters them
 
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
-import { TaskType } from "./pim-types";
+import { TaskType, timeValue } from "./pim-types";
 import { addDays, startOfDay } from "./occurrences";
 
 export type Priority = "high" | "medium" | "low" | "none";
@@ -61,7 +61,7 @@ function dueDay(task: TaskType) {
 
 // When it was made, for the order of tasks that are alike otherwise
 function createdTime(task: TaskType) {
-  const created = task.component.getFirstPropertyValue("created") ?? task.component.getFirstPropertyValue("dtstamp");
+  const created = timeValue(task.component.getFirstPropertyValue("created")) ?? timeValue(task.component.getFirstPropertyValue("dtstamp"));
   return created?.toJSDate().getTime() ?? Infinity;
 }
 

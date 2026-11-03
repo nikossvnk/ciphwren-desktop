@@ -17,7 +17,7 @@ import LoadingIndicator from "../widgets/LoadingIndicator";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import { fonts, useTheme } from "../theme";
 import * as C from "../constants";
-import { TaskStatusType, TaskType, utcNow } from "./pim-types";
+import { TaskStatusType, TaskType, timeValue, utcNow } from "./pim-types";
 import { deletePimItem, deletePimItems, PimCollection, savePimItem, usePimCollections, usePimItems } from "./data";
 import { deleteTaskEvents, nextTaskEvent, updateTaskEvent } from "./taskEvents";
 import { AccentButton, EmptyState } from "./widgets";
@@ -257,7 +257,7 @@ function TaskDetails(props: { task: TaskType, list?: PimCollection, subtasks: Ta
   const { task, fmt, subtasks } = props;
   const [newSub, setNewSub] = React.useState("");
   const due = task.dueDate;
-  const created = task.component.getFirstPropertyValue("created") ?? task.component.getFirstPropertyValue("dtstamp");
+  const created = timeValue(task.component.getFirstPropertyValue("created")) ?? timeValue(task.component.getFirstPropertyValue("dtstamp"));
   const reminders = remindersOf(task.component).map((x) => reminderLabel(x, !due || due.isDate, true, fmt));
   const done = subtasks.filter((x) => x.finished).length;
   const field = (label: string, value: React.ReactNode) => (

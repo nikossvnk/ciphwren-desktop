@@ -6,7 +6,7 @@
 // VTIMEZONE of iCalendar (RFC 5545) that ical.js and other calendars read: the rules that repeat
 // every year as RRULEs, and the changes that don't as RDATEs.
 
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 const second = 1000;
 const day = 24 * 3600 * second;
