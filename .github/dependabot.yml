@@ -15,9 +15,10 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
     ignore:
-      # Expo decides the versions of these, so they are updated together with Expo, by hand
-      # (npx expo install --fix): on their own they would break the app
-      - dependency-name: "expo"
+      # The Expo SDK decides the versions of these, so they're updated with it, by hand (npx expo
+      # install --fix, which picks the set that goes with the SDK): Dependabot would take the
+      # newest of each instead. `expo` itself isn't here, so a new SDK opens a pull request: that's
+      # the branch to run `npx expo install --fix` on.
       - dependency-name: "expo-*"
       - dependency-name: "@expo/*"
       - dependency-name: "babel-preset-expo"
@@ -33,8 +34,6 @@ updates:
       - dependency-name: "react-native-web"
       - dependency-name: "@react-native-async-storage/async-storage"
       - dependency-name: "@react-native-community/netinfo"
-      # patches/ changes it, and the patch is for this version
-      - dependency-name: "react-native-sodium"
 
   - package-ecosystem: npm
     directory: /e2e
