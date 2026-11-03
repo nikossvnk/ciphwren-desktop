@@ -15,10 +15,12 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
     ignore:
-      # The Expo SDK decides the versions of these, so they're updated with it, by hand (npx expo
-      # install --fix, which picks the set that goes with the SDK): Dependabot would take the
-      # newest of each instead. `expo` itself isn't here, so a new SDK opens a pull request: that's
-      # the branch to run `npx expo install --fix` on.
+      # The Expo SDK decides the versions of these (expo/bundledNativeModules.json), so they're
+      # updated with it, by hand (npx expo install --fix, which picks the set that goes with the
+      # SDK): Dependabot would take the newest of each instead. `expo` itself isn't here, so a new
+      # SDK (or a fix of it) opens a pull request: that's the branch to run `npx expo install --fix`
+      # on, and CI's "Expo's versions" step fails until it's done. Only packages the SDK decides
+      # belong here; anything else is updated by Dependabot and checked by CI.
       - dependency-name: "expo-*"
       - dependency-name: "@expo/*"
       - dependency-name: "babel-preset-expo"
@@ -27,9 +29,9 @@ updates:
       - dependency-name: "@types/react"
       - dependency-name: "react-native"
       - dependency-name: "react-native-gesture-handler"
-      - dependency-name: "react-native-get-random-values"
       - dependency-name: "react-native-reanimated"
       - dependency-name: "react-native-safe-area-context"
+      - dependency-name: "react-native-worklets"
       - dependency-name: "react-native-screens"
       - dependency-name: "react-native-web"
       - dependency-name: "@react-native-async-storage/async-storage"
