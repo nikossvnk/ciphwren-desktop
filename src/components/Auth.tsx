@@ -6,7 +6,7 @@
 // above the form. And the parts of their forms.
 
 import * as React from "react";
-import { Linking, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Linking, Platform, ScrollView, StyleSheet, TextInput, TextInputInstance, View } from "react-native";
 import { ActivityIndicator, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -134,7 +134,7 @@ export function AuthHeading(props: { title: string, question?: string, linkLabel
 }
 
 // Which server the account is on (there's no default one: it has to be given)
-export function ServerBox(props: { verb: string, value: string, onChange: (value: string) => void, error?: string, inputRef?: React.Ref<TextInput> }) {
+export function ServerBox(props: { verb: string, value: string, onChange: (value: string) => void, error?: string, inputRef?: React.Ref<TextInputInstance> }) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(!!props.value || !!props.error);
   const custom = props.value.trim();
@@ -208,7 +208,7 @@ export function AuthField(props: React.PropsWithChildren<{ label: string, error?
   );
 }
 
-export const AuthInput = React.forwardRef(function AuthInput(props: React.ComponentProps<typeof TextInput> & { invalid?: boolean }, ref: React.Ref<TextInput>) {
+export const AuthInput = React.forwardRef(function AuthInput(props: React.ComponentProps<typeof TextInput> & { invalid?: boolean }, ref: React.Ref<TextInputInstance>) {
   const theme = useTheme();
   const [focused, setFocused] = React.useState(false);
   const { style, invalid, ...rest } = props;
@@ -249,7 +249,7 @@ export function UsernameField(props: { value: string, onChangeText: (value: stri
   );
 }
 
-export const PasswordField = React.forwardRef(function PasswordField(props: React.ComponentProps<typeof TextInput> & { invalid?: boolean }, ref: React.Ref<TextInput>) {
+export const PasswordField = React.forwardRef(function PasswordField(props: React.ComponentProps<typeof TextInput> & { invalid?: boolean }, ref: React.Ref<TextInputInstance>) {
   const theme = useTheme();
   const [shown, setShown] = React.useState(false);
   return (

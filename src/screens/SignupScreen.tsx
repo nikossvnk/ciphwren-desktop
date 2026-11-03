@@ -5,7 +5,7 @@ import * as React from "react";
 
 import * as Etebase from "etebase";
 
-import { Platform, View, TextInput as NativeTextInput } from "react-native";
+import { Platform, View, TextInputInstance } from "react-native";
 import { Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
@@ -55,8 +55,8 @@ export default React.memo(function SignupScreen() {
   const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<FormErrors>({});
 
-  const emailRef = React.useRef<NativeTextInput>(null);
-  const passwordRef = React.useRef<NativeTextInput>(null);
+  const emailRef = React.useRef<TextInputInstance>(null);
+  const passwordRef = React.useRef<TextInputInstance>(null);
 
   async function onSubmit() {
     const serverUrl = server.trim();

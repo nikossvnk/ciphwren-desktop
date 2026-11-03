@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
-import { TextInput } from "react-native";
+import { TextInput, TextInputInstance } from "react-native";
 import { useTheme } from "../theme";
 
-export default function RawTextInput(props_: React.ComponentProps<typeof TextInput> & { ref?: React.Ref<TextInput> }) {
+export default function RawTextInput(props_: React.ComponentProps<typeof TextInput> & { ref?: React.Ref<TextInputInstance> }) {
   const theme = useTheme();
   const { style, ...props } = props_;
 

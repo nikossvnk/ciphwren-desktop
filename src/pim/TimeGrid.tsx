@@ -6,7 +6,7 @@
 // Events can be dragged to another time (and day), and their lower edge to change how long they are.
 
 import * as React from "react";
-import { PanResponder, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { PanResponder, Platform, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
 import { Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
@@ -247,7 +247,7 @@ interface PropsType {
 export default function TimeGrid(props: PropsType) {
   const theme = useTheme();
   const { days, occurrences, fmt } = props;
-  const scrollRef = React.useRef<ScrollView>(null);
+  const scrollRef = React.useRef<ScrollViewInstance>(null);
   const [now, setNow] = React.useState(() => new Date());
   const [width, setWidth] = React.useState(0);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

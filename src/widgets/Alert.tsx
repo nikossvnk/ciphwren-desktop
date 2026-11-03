@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
-import { View, ViewProps, StyleSheet } from "react-native";
+import { View, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { Text, TouchableRipple } from "react-native-paper";
 import { useTheme } from "../theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Link from "./Link";
 
-type PropsType = ViewProps & {
+// (the props are the text's, but the style is the box's)
+type PropsType = Omit<React.ComponentProps<typeof Text>, "style" | "children"> & {
+  style?: StyleProp<ViewStyle>;
   severity: "error" | "warning" | "info" | "success";
   to?: string;
   external?: boolean;

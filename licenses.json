@@ -65,6 +65,11 @@
       "repository": "https://github.com/expo/expo",
       "publisher": "650 Industries, Inc."
     },
+    "expo-splash-screen": {
+      "licenses": "MIT",
+      "repository": "https://github.com/expo/expo",
+      "publisher": "650 Industries, Inc."
+    },
     "expo-updates": {
       "licenses": "MIT",
       "repository": "https://github.com/expo/expo",
@@ -107,11 +112,11 @@
     },
     "react": {
       "licenses": "MIT",
-      "repository": "https://github.com/facebook/react"
+      "repository": "https://github.com/react/react"
     },
     "react-dom": {
       "licenses": "MIT",
-      "repository": "https://github.com/facebook/react"
+      "repository": "https://github.com/react/react"
     },
     "react-native": {
       "licenses": "MIT",
@@ -152,7 +157,7 @@
     },
     "react-native-safe-area-context": {
       "licenses": "MIT",
-      "repository": "https://github.com/AppAndFlow/react-native-safe-area-context",
+      "repository": "https://github.com/appandflow/react-native-safe-area-context",
       "publisher": "Janic Duplessis"
     },
     "react-native-screens": {
@@ -169,6 +174,10 @@
       "licenses": "MIT",
       "repository": "https://github.com/necolas/react-native-web",
       "publisher": "Nicolas Gallagher"
+    },
+    "react-native-worklets": {
+      "licenses": "MIT",
+      "repository": "https://github.com/software-mansion/react-native-reanimated"
     },
     "react-redux": {
       "licenses": "MIT",

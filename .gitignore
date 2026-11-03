@@ -1,5 +1,5 @@
 node_modules/**/*
-.expo/*
+.expo/
 npm-debug.*
 *.jks
 *.p8
@@ -76,8 +76,6 @@ buck-out/
 # CocoaPods
 /ios/Pods/
 
-# Expo
-.expo/*
 web-build/
 web-build2/
 
