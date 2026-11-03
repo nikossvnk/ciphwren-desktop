@@ -8,7 +8,7 @@
 import type { ItemMetadata } from "etebase";
 
 import type { BookmarkMetadata } from "../bookmarks";
-import { ContactType, EventType, TaskStatusType, TaskType } from "./pim-types";
+import { ContactType, EventType, TaskStatusType, TaskType, tzidOf } from "./pim-types";
 import { contactBirthday, eventAttendees } from "./occurrences";
 import { priorityLabels, priorityOf, repeatName } from "./tasks";
 import { reminderLabel, remindersOf } from "./reminders";
@@ -38,7 +38,7 @@ function eventWhen(event: EventType, fmt: DateFormats) {
   const sameDay = start.toDateString() === end.toDateString();
   const value = (allDay) ? ((sameDay) ? `${dayOf(start, fmt)}, all day` : `${dayOf(start, fmt)} – ${dayOf(end, fmt)}, all day`) :
     (sameDay) ? `${dayOf(start, fmt)}, ${fmt.time(start)} – ${fmt.time(end)}` : `${dayOf(start, fmt)}, ${fmt.time(start)} – ${dayOf(end, fmt)}, ${fmt.time(end)}`;
-  const zone = (!allDay) ? (event.startDate.timezone ?? event.startDate.zone?.tzid) : undefined;
+  const zone = (!allDay) ? (tzidOf(event.startDate) ?? event.startDate.zone?.tzid) : undefined;
   const here = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return (zone && (zone !== "floating") && (zone !== here)) ? `${value} (${zone.replace(/_/g, " ")} time shown where you are)` : value;
 }
@@ -94,7 +94,7 @@ export function taskFields(content: string, fmt: DateFormats): Field[] | undefin
     return undefined;
   }
   const ret: Field[] = [{ label: "Title", value: task.summary || "(no title)" }];
-  let status = statusNames[task.status] ?? "Not done";
+  let status = ((task.status) ? statusNames[task.status] : undefined) ?? "Not done";
   try {
     if ((task.status === TaskStatusType.Completed) && task.completionDate) {
       status += `, ${taskDate(task.completionDate, fmt)}`;

@@ -9,13 +9,13 @@
 // deleted too. Changing the event doesn't change the task.
 
 import * as Etebase from "etebase";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { store } from "../store";
 import { findCollection } from "../cached";
 import * as C from "../constants";
-import { EventType, TaskType, timezoneLoadFromName, utcNow } from "./pim-types";
+import { EventType, TaskType, textValue, timezoneLoadFromName, tzidOf, utcNow } from "./pim-types";
 import { deletePimItems, entriesOfType, loadPimItems, savePimItem } from "./data";
 import { addSeconds, bumpSequence } from "./recurrence";
 
@@ -24,7 +24,7 @@ const taskProperty = "x-etesync-desktop-task";
 
 // The UID of the event of a task, if it has one
 export function linkedEventUid(task: TaskType): string | undefined {
-  return task.component.getFirstPropertyValue<string>(eventProperty) || undefined;
+  return textValue(task.component.getFirstPropertyValue(eventProperty)) || undefined;
 }
 
 export function setLinkedEvent(task: TaskType, eventUid: string | undefined) {
@@ -37,7 +37,7 @@ export function setLinkedEvent(task: TaskType, eventUid: string | undefined) {
 
 // The UID of the task an event is for, if it's one
 export function linkedTaskUid(event: EventType): string | undefined {
-  return event.component.getFirstPropertyValue<string>(taskProperty) || undefined;
+  return textValue(event.component.getFirstPropertyValue(taskProperty)) || undefined;
 }
 
 // The event's title: the task's, with a mark when it's done
@@ -57,7 +57,8 @@ export function taskEventTimes(due: ICAL.Time): { start: ICAL.Time, end: ICAL.Ti
   }
   let start = due.clone();
   if (!start.zone || (start.zone === ICAL.Timezone.localTimezone)) {
-    const named = (due.timezone && (due.timezone !== "floating")) ? due.timezone : undefined;
+    const tzid = tzidOf(due);
+    const named = (tzid && (tzid !== "floating")) ? tzid : undefined;
     const zone = timezoneLoadFromName(named ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
     const data = { year: due.year, month: due.month, day: due.day, hour: due.hour, minute: due.minute, second: due.second, isDate: false };
     start = (zone) ? ICAL.Time.fromData(data, zone) : ICAL.Time.fromJSDate(new Date(due.year, due.month - 1, due.day, due.hour, due.minute, due.second), true);

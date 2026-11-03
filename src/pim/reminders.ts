@@ -7,7 +7,7 @@
 // RELATED=END), as Android's are. Others (e.g. at a set time, or relative to the other end) are
 // shown and kept as they are.
 
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 import { EventType, TaskType } from "./pim-types";
 import { occurrencesBetween } from "./occurrences";
@@ -41,7 +41,7 @@ function relatedOf(comp: ICAL.Component): "START" | "END" {
 // The seconds of a VALARM's TRIGGER, when it's relative to what this app makes them relative to
 function relativeSeconds(alarm: ICAL.Component, related: "START" | "END"): number | undefined {
   const prop = alarm.getFirstProperty("trigger");
-  const value = prop?.getFirstValue<any>();
+  const value = prop?.getFirstValue();
   if (!(value instanceof ICAL.Duration)) {
     return undefined;
   }
@@ -100,7 +100,7 @@ export function reminderLabel(reminder: Reminder, allDay: boolean, isTask: boole
   const { seconds } = reminder;
   if (seconds === undefined) {
     const prop = reminder.alarm?.getFirstProperty("trigger");
-    const value = prop?.getFirstValue<any>();
+    const value = prop?.getFirstValue();
     if (value instanceof ICAL.Time) {
       return `On ${fmt.shortDate(value.toJSDate())} at ${fmt.time(value.toJSDate())}`;
     } else if (!(value instanceof ICAL.Duration)) {
@@ -139,7 +139,7 @@ export interface Notice {
 
 // When a reminder was dismissed (ACKNOWLEDGED, of RFC 9074, which ical.js reads as text)
 function acknowledgedAt(alarm: ICAL.Component) {
-  const value = alarm.getFirstPropertyValue<any>("acknowledged");
+  const value = alarm.getFirstPropertyValue("acknowledged");
   if (value instanceof ICAL.Time) {
     return value.toJSDate().getTime();
   }
@@ -160,7 +160,7 @@ export function upcomingNotices(events: EventType[], tasks: TaskType[], from: Da
         continue;
       }
       const prop = alarm.getFirstProperty("trigger");
-      const value = prop?.getFirstValue<any>();
+      const value = prop?.getFirstValue();
       let at: number;
       if (value instanceof ICAL.Time) {
         at = value.toJSDate().getTime();

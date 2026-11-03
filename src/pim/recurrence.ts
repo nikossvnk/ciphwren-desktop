@@ -7,7 +7,7 @@
 // times are the event's start as it was on that day, in its time zone, so when the event's start
 // moves, they move with it, or other calendars wouldn't find the times they belong to.
 
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 import { EventType, utcNow } from "./pim-types";
 
@@ -27,7 +27,7 @@ function setRecurrenceId(comp: ICAL.Component, time: ICAL.Time) {
 }
 
 function exdates(comp: ICAL.Component): ICAL.Time[] {
-  return comp.getAllProperties("exdate").flatMap((x) => x.getValues<ICAL.Time>());
+  return comp.getAllProperties("exdate").flatMap((x) => x.getValues()).filter((x) => x instanceof ICAL.Time);
 }
 
 function setExdates(comp: ICAL.Component, times: ICAL.Time[]) {
@@ -77,7 +77,9 @@ export function findOccurrence(event: EventType, id: string | undefined): ICAL.T
 
 // The changed time that replaces a time of a repeating event
 export function changedTimeAt(event: EventType, rid: ICAL.Time): ICAL.Event | undefined {
-  return event.exceptions[rid.toString()] ?? event.exceptions[rid.convertToZone(ICAL.Timezone.utcTimezone).toString()];
+  // (ical.js keeps them by the text of their RECURRENCE-ID, though its types say they're an array)
+  const byId = event.exceptions as unknown as Record<string, ICAL.Event | undefined>;
+  return byId[rid.toString()] ?? byId[rid.convertToZone(ICAL.Timezone.utcTimezone).toString()];
 }
 
 export function hasChangedTimes(event: EventType) {
@@ -183,7 +185,7 @@ export function updateSeries(event: EventType, before: EventType) {
   const move = (time: ICAL.Time) => (moved) ? moveTime(time, oldStart!, newStart!) : time;
   if (moved) {
     setExdates(event.component, exdates(event.component).map(move));
-    const recur = event.component.getFirstPropertyValue<ICAL.Recur>("rrule");
+    const recur = event.rrule;
     if (recur?.until) {
       let until = move(recur.until);
       // (the end of a rule is in UTC, unless the event has no time zone)

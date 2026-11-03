@@ -7,7 +7,7 @@ import * as React from "react";
 import { StyleSheet, TextInput as NativeTextInput, View, ViewStyle, StyleProp } from "react-native";
 import { Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 import Menu from "../widgets/Menu";
 import MenuItem from "../widgets/MenuItem";

@@ -6,7 +6,7 @@ import { ScrollView, View } from "react-native";
 import { HelperText, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { RouteProp, useNavigation } from "@react-navigation/native";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { useCredentials } from "../credentials";

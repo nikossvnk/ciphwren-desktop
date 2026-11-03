@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: © 2017 EteSync Authors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as zoneAliases from "./data/zones.json";
 import moment from "moment";
 import * as uuid from "uuid";
@@ -13,6 +13,28 @@ const PRODID = "-//iCal.js EteSync iOS";
 // is the time on this device's clock, without a time zone)
 export function utcNow() {
   return ICAL.Time.fromJSDate(new Date(), true);
+}
+
+// The value of a property (or of a property's first value), when it's of the kind it has to be.
+// ical.js types values as any of its kinds (and leaves out numbers, which INTEGER properties such as
+// PRIORITY are), so the kind is checked here.
+export function timeValue(value: unknown): ICAL.Time | undefined {
+  return (value instanceof ICAL.Time) ? value : undefined;
+}
+
+export function textValue(value: unknown): string | undefined {
+  return (typeof value === "string") ? value : undefined;
+}
+
+export function numberValue(value: unknown): number | undefined {
+  return (typeof value === "number") ? value : undefined;
+}
+
+// The time zone a time is in, by its TZID. It's also there when the zone wasn't known when the time
+// was read (the time is then in this device's zone): ical.js keeps the name, but its types leave it
+// out.
+export function tzidOf(time: ICAL.Time): string | undefined {
+  return ("timezone" in time) ? textValue(time.timezone) : undefined;
 }
 
 export interface PimType {
@@ -46,7 +68,7 @@ export function timezoneLoadFromName(timezone: string | null) {
     tzid: timezone,
   });
 
-  ICAL.TimezoneService.register(timezone, retZone);
+  ICAL.TimezoneService.register(retZone, timezone);
 
   return retZone;
 }
@@ -69,7 +91,7 @@ function splitItem(comp: ICAL.Component, name: string) {
   for (const zone of comp.getAllSubcomponents("vtimezone")) {
     const tzid = String(zone.getFirstPropertyValue("tzid") ?? "");
     if (tzid && !timezoneLoadFromName(tzid) && !ICAL.TimezoneService.has(tzid)) {
-      ICAL.TimezoneService.register(tzid, new ICAL.Timezone(copyComponent(zone)));
+      ICAL.TimezoneService.register(new ICAL.Timezone(copyComponent(zone)), tzid);
     }
   }
   const all = comp.getAllSubcomponents(name);
@@ -84,20 +106,9 @@ function splitItem(comp: ICAL.Component, name: string) {
 export class EventType extends ICAL.Event implements PimType {
   public collectionUid?: string;
   public itemUid?: string;
-  // The color of the collection the event is in, which it's shown with. It's not a part of the event
-  // itself, so this replaces the accessor of ical.js, which sets the COLOR property of the event.
-  private _color?: string;
   // Other components of the item (e.g. changed times without the event they belong to), which are
   // saved as they are
   public others: ICAL.Component[] = [];
-
-  get color(): string | undefined {
-    return this._color;
-  }
-
-  set color(value: string | undefined) {
-    this._color = value;
-  }
 
   public static isEvent(comp: ICAL.Component) {
     return !!comp.getFirstSubcomponent("vevent");
@@ -105,7 +116,7 @@ export class EventType extends ICAL.Event implements PimType {
 
   public static fromVCalendar(comp: ICAL.Component) {
     const { main, exceptions, others } = splitItem(comp, "vevent");
-    const event = new EventType(main, { exceptions });
+    const event = new EventType(main ?? undefined, { exceptions });
     event.others = others;
     // FIXME: we need to clone it so it loads the correct timezone and applies it
     timezoneLoadFromName(event.timezone);
@@ -117,13 +128,8 @@ export class EventType extends ICAL.Event implements PimType {
   }
 
   get timezone() {
-    if (this.startDate) {
-      return this.startDate.timezone;
-    } else if (this.endDate) {
-      return this.endDate.timezone;
-    }
-
-    return null;
+    const time = this.startDate ?? this.endDate;
+    return (time) ? (tzidOf(time) ?? null) : null;
   }
 
   get title() {
@@ -150,16 +156,17 @@ export class EventType extends ICAL.Event implements PimType {
     return this.description;
   }
 
-  get lastModified() {
-    return this.component.getFirstPropertyValue("last-modified");
+  get lastModified(): ICAL.Time | undefined {
+    return timeValue(this.component.getFirstPropertyValue("last-modified"));
   }
 
   set lastModified(time: ICAL.Time) {
     this.component.updatePropertyWithValue("last-modified", time);
   }
 
-  get rrule() {
-    return this.component.getFirstPropertyValue("rrule");
+  get rrule(): ICAL.Recur | undefined {
+    const value: unknown = this.component.getFirstPropertyValue("rrule");
+    return (value instanceof ICAL.Recur) ? value : undefined;
   }
 
   set rrule(rule: ICAL.Recur) {
@@ -198,7 +205,6 @@ export class EventType extends ICAL.Event implements PimType {
   public clone() {
     const ret = new EventType(copyComponent(this.component), { exceptions: this.changedTimes.map(copyComponent) });
     ret.others = this.others.map(copyComponent);
-    ret.color = this.color;
     ret.collectionUid = this.collectionUid;
     ret.itemUid = this.itemUid;
     return ret;
@@ -247,16 +253,17 @@ export class TaskType extends EventType {
     this.component.updatePropertyWithValue("status", status);
   }
 
-  get status(): TaskStatusType {
-    return this.component.getFirstPropertyValue("status");
+  get status(): TaskStatusType | undefined {
+    const value = textValue(this.component.getFirstPropertyValue("status"));
+    return Object.values(TaskStatusType).find((x) => x === value);
   }
 
   set priority(priority: TaskPriorityType) {
     this.component.updatePropertyWithValue("priority", priority);
   }
 
-  get priority() {
-    return this.component.getFirstPropertyValue("priority");
+  get priority(): number | undefined {
+    return numberValue(this.component.getFirstPropertyValue("priority"));
   }
 
   set tags(tags: string[]) {
@@ -288,7 +295,7 @@ export class TaskType extends EventType {
   }
 
   get dueDate() {
-    return this.component.getFirstPropertyValue("due");
+    return timeValue(this.component.getFirstPropertyValue("due"));
   }
 
   set completionDate(date: ICAL.Time | undefined) {
@@ -300,7 +307,7 @@ export class TaskType extends EventType {
   }
 
   get completionDate() {
-    return this.component.getFirstPropertyValue("completed");
+    return timeValue(this.component.getFirstPropertyValue("completed"));
   }
 
   set relatedTo(parentUid: string | undefined) {
@@ -312,7 +319,7 @@ export class TaskType extends EventType {
   }
 
   get relatedTo(): string | undefined {
-    return this.component.getFirstPropertyValue("related-to");
+    return textValue(this.component.getFirstPropertyValue("related-to"));
   }
 
   get endDate() {
@@ -351,16 +358,16 @@ export class TaskType extends EventType {
   public clone() {
     const ret = new TaskType(copyComponent(this.component), { exceptions: this.changedTimes.map(copyComponent) });
     ret.others = this.others.map(copyComponent);
-    ret.color = this.color;
     return ret;
   }
 
   public getNextOccurence(): TaskType | null {
-    if (!this.isRecurring()) {
+    const rule = this.rrule;
+    if (!this.isRecurring() || !rule) {
       return null;
     }
 
-    const rrule = this.rrule.clone();
+    const rrule = rule.clone();
 
     if (rrule.count && rrule.count <= 1) {
       return null; // end of reccurence
@@ -398,8 +405,8 @@ export class TaskType extends EventType {
       nextTask.dueDate = nextDueDate;
     }
 
-    if (this.rrule.count) {
-      rrule.count = this.rrule.count - 1;
+    if (rule.count) {
+      rrule.count = rule.count - 1;
       nextTask.rrule = rrule;
     }
 
@@ -433,7 +440,7 @@ export class ContactType implements PimType {
   }
 
   get uid() {
-    return this.comp.getFirstPropertyValue("uid");
+    return textValue(this.comp.getFirstPropertyValue("uid")) ?? "";
   }
 
   set uid(uid: string) {
@@ -441,27 +448,19 @@ export class ContactType implements PimType {
   }
 
   get fn() {
-    return this.comp.getFirstPropertyValue("fn");
-  }
-
-  get n() {
-    return this.comp.getFirstPropertyValue("n");
-  }
-
-  get bday() {
-    return this.comp.getFirstPropertyValue("bday");
+    return textValue(this.comp.getFirstPropertyValue("fn"));
   }
 
   get lastModified() {
-    return this.comp.getFirstPropertyValue("rev");
+    return timeValue(this.comp.getFirstPropertyValue("rev"));
   }
 
   get group() {
-    const kind = this.comp.getFirstPropertyValue("kind");
-    return ["group", "organization"].includes(kind);
+    const kind = textValue(this.comp.getFirstPropertyValue("kind"));
+    return (kind === "group") || (kind === "organization");
   }
 
   get members() {
-    return this.comp.getAllProperties("member").map((prop) => prop.getFirstValue<string>().replace("urn:uuid:", ""));
+    return this.comp.getAllProperties("member").map((prop) => (textValue(prop.getFirstValue()) ?? "").replace("urn:uuid:", ""));
   }
 }

@@ -6,7 +6,7 @@ import { ScrollView, View } from "react-native";
 import { HelperText, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { RouteProp, useNavigation } from "@react-navigation/native";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { useCredentials } from "../credentials";
@@ -21,7 +21,7 @@ import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import AppbarAction from "../widgets/AppbarAction";
 import { useTheme } from "../theme";
 import * as C from "../constants";
-import { EventType, timezoneLoadFromName, utcNow } from "./pim-types";
+import { EventType, timezoneLoadFromName, tzidOf, utcNow } from "./pim-types";
 import AttendeesField, { AttendeeEntry, attendeesOf, setAttendees } from "./AttendeesField";
 import { deletePimItem, savePimItem, usePimCollections, usePimItems } from "./data";
 import { useDateFormats } from "./format";
@@ -46,7 +46,7 @@ function loadZone(name: string) {
 // The time zone an event's times are in (e.g. "Europe/Berlin", or "UTC"), or undefined for one
 // without (a "floating" time, the same on every device)
 function zoneOf(time: ICAL.Time): string | undefined {
-  const name = time.timezone ?? time.zone?.tzid;
+  const name = tzidOf(time) ?? time.zone?.tzid;
   if (!name || (name === "floating")) {
     return undefined;
   }

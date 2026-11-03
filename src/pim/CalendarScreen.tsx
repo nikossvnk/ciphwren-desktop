@@ -7,7 +7,7 @@ import { IconButton, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 import { useCredentials } from "../credentials";
 import { useSyncGate } from "../SyncGate";

@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import * as Etebase from "etebase";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import { useSelector } from "react-redux";
 
 import { store, StoreState } from "../store";

@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { useSelector } from "react-redux";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 
 import { useCredentials } from "../credentials";
 import { StoreState } from "../store";
@@ -196,7 +196,7 @@ export function occurrencesBetween(events: EventType[], calendars: PimCollection
     for (let year = from.getFullYear() ; year <= to.getFullYear() ; year++) {
       const start = new Date(year, bday.month, bday.day);
       if ((start >= startOfDay(from)) && (start < to) && (!bday.year || (bday.year <= year))) {
-        const name = (contact.fn as string) || "(no name)";
+        const name = contact.fn || "(no name)";
         ret.push({
           key: `bday/${contact.collectionUid}/${contact.itemUid}/${year}`,
           title: `${name}’s birthday`,

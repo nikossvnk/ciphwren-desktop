@@ -9,7 +9,7 @@ import { ScrollView, View } from "react-native";
 import { HelperText, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { RouteProp, useNavigation } from "@react-navigation/native";
-import * as ICAL from "ical.js";
+import ICAL from "ical.js";
 import * as uuid from "uuid";
 
 import { useCredentials } from "../credentials";
@@ -66,7 +66,7 @@ export default function ContactEditScreen(props: PropsType) {
     }
     setBook(existing?.collectionUid ?? colUid ?? books[0]?.colUid);
     if (existing) {
-      setName((existing.fn as string) ?? "");
+      setName(existing.fn ?? "");
       setValues(Object.fromEntries(fields.map(({ prop }) => [prop, firstValue(existing, prop)])));
     }
     setLoaded(true);
