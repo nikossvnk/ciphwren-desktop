@@ -40,12 +40,10 @@ DerivedData
 *.xcuserstate
 project.xcworkspace
 
-# Android/IntelliJ
+# IntelliJ
 #
 build/
 .idea
-.gradle
-local.properties
 *.iml
 
 # node.js

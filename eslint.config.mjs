@@ -10,7 +10,7 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["web-build/", "e2e/", "android/", "ios/", "dist/", ".expo/"],
+    ignores: ["web-build/", "e2e/", "ios/", "dist/", ".expo/"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

@@ -284,11 +284,6 @@
       "publisher": "Sindre Sorhus",
       "url": "https://sindresorhus.com"
     },
-    "patch-package": {
-      "licenses": "MIT",
-      "repository": "https://github.com/ds300/patch-package",
-      "publisher": "David Sheldrick"
-    },
     "typescript": {
       "licenses": "Apache-2.0",
       "repository": "https://github.com/microsoft/TypeScript",

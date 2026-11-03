@@ -18,7 +18,7 @@ const paperFonts = (() => {
     light: { fontFamily: fonts.regular, fontWeight: "normal" as const },
     thin: { fontFamily: fonts.regular, fontWeight: "normal" as const },
   };
-  return configureFonts({ isV3: false, config: { web: config, ios: config, android: config, default: config } });
+  return configureFonts({ isV3: false, config: { web: config, ios: config, default: config } });
 })();
 
 export interface Theme extends PaperTheme {

@@ -32,8 +32,8 @@ export interface BookmarkMetadata extends Etebase.ItemMetadata {
 // on a computer (this app), or imported from a browser's bookmark file
 export type SavedFrom = "android" | "android-share" | "computer" | "import";
 
-// Where this app saves bookmarks from
-const savedHere: SavedFrom = (Platform.OS === "android") ? "android" : "computer";
+// Where this app saves bookmarks from (the Android values are of the bookmarks of EteSync Notes)
+const savedHere: SavedFrom = "computer";
 
 // Says where a bookmark was saved, after "Saved 12 Oct": e.g. "from Android (Share)"
 export function savedFromLabel(from: SavedFrom | undefined) {
