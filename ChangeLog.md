@@ -5,6 +5,7 @@
 * Keyboard shortcuts for the formatting bar in the note editor (Ctrl+B bold, Ctrl+I italic, …), and "`" puts the selected text in code
 * Text pasted with its formatting (from a web page or a document) is put in the note as Markdown
 * A right click on a note in the notes column pins or unpins it
+* Logging in again after the account was deleted and made again on the server (same name) no longer crashes: the device's data of the old account is removed and the new one's synced
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it
