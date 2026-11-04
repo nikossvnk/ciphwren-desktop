@@ -150,7 +150,7 @@ const shortcuts: { title: string, items: [string[], string][] }[] = [
   { title: "Notes", items: [
     [["Esc"], "Stop editing the note"],
     [["Ctrl", "Click"], "Select several notes (Esc selects none)"],
-    [["Right click"], "Move or delete the note, or the selected ones"],
+    [["Right click"], "Pin, move or delete the note, or the selected ones"],
   ] },
   { title: "Editing a note", items: [
     ...formatShortcuts,
