@@ -48,6 +48,15 @@ run(async () => {
   check("the note is in the other notebook on the server, with its content", await waitFor(async () =>
     (await api.noteContent(work, alpha)) === "content of " + alpha && !(await names("My Notes")).includes(alpha)), [await names(work), await names("My Notes")]);
 
+  // Pinning one, and unpinning it
+  await row(beta).click({ button: "right" }); await A.wait(500);
+  await item("Pin").click();
+  check("Pin pins the note on the server", await waitFor(async () => (await api.noteMeta("My Notes", beta))?.pinned === true), await api.noteMeta("My Notes", beta));
+  await row(beta).click({ button: "right" }); await A.wait(500);
+  check("then the menu unpins it", await item("Unpin").count() === 1 && await item("Pin").count() === 0);
+  await item("Unpin").click();
+  check("Unpin unpins it on the server", await waitFor(async () => !("pinned" in ((await api.noteMeta("My Notes", beta)) ?? { pinned: 1 }))), await api.noteMeta("My Notes", beta));
+
   // Deleting one
   await row(beta).click({ button: "right" }); await A.wait(500);
   await item("Delete").click(); await A.wait(500);

@@ -12,7 +12,7 @@ import { StoreState } from "../store";
 import { pushMessage, setSettings } from "../store/actions";
 import { useCredentials } from "../credentials";
 import { useSyncGate } from "../SyncGate";
-import { deleteNotes, isPinned, moveNotes, untitled } from "../notes";
+import { deleteNotes, isPinned, moveNotes, setPinned, untitled } from "../notes";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import { useNoteSearch } from "../search";
 import { fonts, useTheme } from "../theme";
@@ -184,6 +184,12 @@ export default function NotesColumn() {
     .filter(([uid]) => !((menuFrom.size === 1) && menuFrom.has(uid)))
     .map(([uid, col]) => ({ uid, name: col.meta.name ?? "", color: col.meta.color || defaultColor }))
     .sort((a, b) => a.name.localeCompare(b.name));
+  // Whether all of the menu's notes are pinned, so that it unpins them
+  const menuPinned = !!menu && [...menu.notes].every((note) => {
+    const [colUid, itemUid] = note.split("/");
+    const item = cacheItems.get(colUid)?.get(itemUid);
+    return !!item && isPinned(item);
+  });
 
   const getItemMgr = useItemManagers();
 
@@ -282,6 +288,14 @@ export default function NotesColumn() {
             />
           )) : (
             <>
+              <Menu.Item
+                title={((menuPinned) ? "Unpin" : "Pin") + ((menu.notes.size === 1) ? "" : ` ${menu.notes.size} notes`)}
+                leadingIcon={(menuPinned) ? "pin-off-outline" : "pin-outline"}
+                onPress={async () => {
+                  setMenu(undefined);
+                  await setPinned(etebase!, menu.notes, !menuPinned);
+                }}
+              />
               <Menu.Item
                 title="Move to…"
                 leadingIcon="folder-move-outline"

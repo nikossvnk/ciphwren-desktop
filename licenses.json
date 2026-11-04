@@ -207,6 +207,16 @@
       "licenses": "MIT",
       "repository": "https://github.com/reduxjs/reselect"
     },
+    "turndown": {
+      "licenses": "MIT",
+      "repository": "https://github.com/mixmark-io/turndown",
+      "publisher": "Dom Christie"
+    },
+    "turndown-plugin-gfm": {
+      "licenses": "MIT",
+      "repository": "https://github.com/domchristie/turndown-plugin-gfm",
+      "publisher": "Dom Christie"
+    },
     "use-debounce": {
       "licenses": "MIT",
       "repository": "https://github.com/xnimorz/use-debounce",
@@ -255,6 +265,10 @@
       "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped"
     },
     "@types/redux-actions": {
+      "licenses": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped"
+    },
+    "@types/turndown": {
       "licenses": "MIT",
       "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped"
     },

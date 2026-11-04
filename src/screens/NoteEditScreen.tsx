@@ -34,8 +34,9 @@ import { fontFamilies } from "../helpers";
 import Select from "../widgets/Select";
 import { RootStackParamList } from "../RootStackParamList";
 import { useWideLayout } from "../components/WideLayout";
-import FormatBar from "../widgets/FormatBar";
-import { Edit } from "../markdownFormat";
+import FormatBar, { formatShortcut } from "../widgets/FormatBar";
+import { code, Edit } from "../markdownFormat";
+import { htmlToMarkdown } from "../pasteMarkdown";
 import { canShare, shareItem } from "../import-export";
 import { defaultColor } from "../constants";
 
@@ -353,10 +354,20 @@ export default function NoteEditScreen(props: PropsType) {
     onSaveDo();
   }
 
-  // Formats the Markdown around the selection (from the formatting bar) and selects what it made
+  // Formats the Markdown around the selection (from the formatting bar, a shortcut or a paste) and
+  // selects what it made
   function applyFormat(apply: (edit: Edit) => Edit) {
+    const textarea = editorTextarea(textInputRef.current);
+    if (textarea) {
+      selectionRef.current = { start: textarea.selectionStart, end: textarea.selectionEnd };
+    }
     const { start, end } = selectionRef.current;
     const result = apply({ text: contentRef.current, start, end });
+    // On the web it's typed in, so that undo takes it back
+    if (textarea && (textarea.value === contentRef.current) && typeInto(textarea, result)) {
+      selectionRef.current = { start: result.start, end: result.end };
+      return;
+    }
     setContent(result.text);
     selectionRef.current = { start: result.start, end: result.end };
     setForcedSelection({ start: result.start, end: result.end });
@@ -477,6 +488,7 @@ export default function NoteEditScreen(props: PropsType) {
                     setForcedSelection(undefined);
                   }
                 }}
+                onFormat={applyFormat}
               />
             </View>
           </Pressable>
@@ -535,21 +547,95 @@ function RightAction({ viewMode, setViewMode, onSave, onDelete, onShare, onHisto
   );
 }
 
+// The editor's <textarea>, on the web
+function editorTextarea(input: TextInputInstance | null): HTMLTextAreaElement | undefined {
+  // (React Native Web's text input is the element itself)
+  const element = input as unknown as HTMLElement | null;
+  return (Platform.OS === "web") && (element?.tagName === "TEXTAREA") ? element as HTMLTextAreaElement : undefined;
+}
+
+// Changes the text of the editor to the edit's, by typing over only what changed, so that the
+// browser's undo takes it back; then selects the edit's selection. False when it can't.
+function typeInto(textarea: HTMLTextAreaElement, edit: Edit) {
+  const before = textarea.value;
+  const after = edit.text;
+  let from = 0;
+  while ((from < before.length) && (from < after.length) && (before[from] === after[from])) {
+    from++;
+  }
+  let same = 0;
+  while ((same < before.length - from) && (same < after.length - from) && (before[before.length - 1 - same] === after[after.length - 1 - same])) {
+    same++;
+  }
+  const inserted = after.slice(from, after.length - same);
+  textarea.focus();
+  textarea.setSelectionRange(from, before.length - same);
+  if ((from !== before.length - same) || inserted) {
+    const typed = (inserted) ? document.execCommand("insertText", false, inserted) : document.execCommand("delete");
+    if (!typed || (textarea.value !== after)) {
+      return false;
+    }
+  }
+  textarea.setSelectionRange(edit.start, edit.end);
+  return true;
+}
+
 interface TextEditorPropsType extends ViewProps {
-  inputRef?: React.Ref<TextInputInstance>;
+  inputRef: React.RefObject<TextInputInstance | null>;
   content: string;
   setContent: (value: string) => void;
   autoFocus?: boolean;
   selection?: { start: number, end: number };
   onSelectionChange?: (selection: { start: number, end: number }) => void;
   contentStyle?: ViewProps["style"];
+  // Formats the Markdown around the selection: for the shortcuts, and pasting formatted text
+  onFormat: (apply: (edit: Edit) => Edit) => void;
 }
 
 function TextEditor(props: TextEditorPropsType) {
-  const { content, setContent } = props;
+  const { content, setContent, inputRef } = props;
   const fontSize = useSelector((state: StoreState) => state.settings.fontSize);
   const fontFamilyKey = useSelector((state: StoreState) => state.settings.viewSettings.editorFontFamily);
   const fontFamily = fontFamilies[fontFamilyKey];
+  const onFormatRef = React.useRef(props.onFormat);
+  onFormatRef.current = props.onFormat;
+
+  // On the web: the formatting bar's shortcuts; "`" puts what's selected in code (instead of typing
+  // over it); and text pasted with its formatting (e.g. from a web page) is put in as Markdown
+  React.useEffect(() => {
+    const textarea = editorTextarea(inputRef.current);
+    if (!textarea) {
+      return undefined;
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.isComposing) {
+        return;
+      }
+      const backtick = (e.key === "`") && !e.ctrlKey && !e.metaKey && !e.altKey && (textarea.selectionStart !== textarea.selectionEnd);
+      const apply = (backtick) ? code : formatShortcut(e);
+      if (apply) {
+        e.preventDefault();
+        onFormatRef.current(apply);
+      }
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      const markdown = (e.clipboardData) ? htmlToMarkdown(e.clipboardData.getData("text/html"), e.clipboardData.getData("text/plain")) : undefined;
+      if (markdown === undefined) {
+        return;
+      }
+      e.preventDefault();
+      onFormatRef.current(({ text, start, end }) => {
+        const at = start + markdown.length;
+        return { text: text.slice(0, start) + markdown + text.slice(end), start: at, end: at };
+      });
+    };
+    textarea.addEventListener("keydown", onKey);
+    textarea.addEventListener("paste", onPaste);
+    return () => {
+      textarea.removeEventListener("keydown", onKey);
+      textarea.removeEventListener("paste", onPaste);
+    };
+  }, [inputRef]);
 
   return (
     <KeyboardAvoidingView
@@ -558,7 +644,7 @@ function TextEditor(props: TextEditorPropsType) {
       style={[{ backgroundColor: "transparent" }, props.style]}
     >
       <RawTextInput
-        ref={props.inputRef}
+        ref={inputRef}
         accessibilityLabel="Content"
         textAlignVertical="top"
         multiline

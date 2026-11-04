@@ -22,13 +22,13 @@
     "@react-navigation/stack": "^7.12.1",
     "color": "^5.0.3",
     "date-fns": "^4.0.0",
-    "etebase": "https://github.com/nikossvnk/etebase-js/releases/download/v0.44.1/etebase-0.44.1.tgz",
-    "expo": "~58.0.22",
+    "etebase": "https://github.com/nikossvnk/etebase-js/releases/download/v0.44.2/etebase-0.44.2.tgz",
+    "expo": "~58.0.23",
     "expo-file-system": "~58.0.13",
     "expo-font": "~58.0.11",
     "expo-secure-store": "~58.0.2",
-    "expo-splash-screen": "~58.0.12",
-    "expo-updates": "~58.0.20",
+    "expo-splash-screen": "~58.0.13",
+    "expo-updates": "~58.0.21",
     "fflate": "^0.8.3",
     "highlight-words-core": "^2.0.0",
     "ical.js": "^2.2.1",
@@ -39,14 +39,14 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
-    "react-native-etebase": "https://github.com/nikossvnk/etebase-js/releases/download/v0.44.1/react-native-etebase-0.44.1.tgz",
+    "react-native-etebase": "https://github.com/nikossvnk/etebase-js/releases/download/v0.44.2/react-native-etebase-0.44.2.tgz",
     "react-native-gesture-handler": "~3.3.0",
     "react-native-get-random-values": "^2.1.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-markdown-display": "^7.0.0",
     "react-native-paper": "^5.12.0",
     "react-native-reanimated": "4.7.1",
-    "react-native-safe-area-context": "~5.10.1",
+    "react-native-safe-area-context": "~5.11.1",
     "react-native-screens": "~4.30.1",
     "react-native-sodium": "^0.4.0",
     "react-native-web": "^0.21.4",
@@ -57,6 +57,8 @@
     "redux-persist": "^6.0.0",
     "redux-thunk": "^3.0.0",
     "reselect": "^5.0.0",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2",
     "use-debounce": "^10.0.0",
     "uuid": "^14.0.3"
   },
@@ -70,6 +72,7 @@
     "@types/markdown-it": "^14.2.0",
     "@types/react": "~19.3.0",
     "@types/redux-actions": "^2.6.5",
+    "@types/turndown": "^5.0.6",
     "@typescript/native": "npm:typescript@^7.0.2",
     "babel-preset-expo": "~58.0.0",
     "eslint": "^10.0.0",
@@ -88,7 +91,9 @@
   },
   "expo": {
     "install": {
-      "exclude": ["typescript"]
+      "exclude": [
+        "typescript"
+      ]
     }
   }
 }
