@@ -175,6 +175,7 @@ function ErrorBoundaryInner(props: React.PropsWithChildren<{ error: Error | unde
             <Button mode="contained" style={buttonStyle} onPress={async () => {
               store.dispatch(setSettings({ logLevel: LogLevel.Debug }));
               persistor.persist();
+              await persistor.flush();
               Updates.reloadAsync();
             }}>Enable Logging &amp; Reload</Button>
             <Button disabled={!etesync} mode="contained" style={buttonStyle} onPress={() => setShowLogout(true)}>Logout &amp; Reload</Button>

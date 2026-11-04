@@ -20,6 +20,17 @@ run(async () => {
     await A.p.keyboard.press("Escape"); await A.wait(1000);
     check(`${scheme}: escape ends editing`, !(await inEditor()) && (await A.viewerText()).includes("a note to edit"));
 
+    // Escape closes a dialog over the editor (its cancel), and only the dialog
+    await edit();
+    await A.btn(/^delete$/i).click(); await A.wait(800);
+    const dialog = A.p.getByText("Are you sure you would like to delete this note?").locator("visible=true");
+    check(`${scheme}: the delete dialog opens over the editor`, await dialog.count() === 1);
+    await A.p.keyboard.press("Escape"); await A.wait(1000);
+    // (the note is still there, not deleted: an older copy is deleted, as moving it below makes a new one)
+    check(`${scheme}: escape closes it, without deleting`, await dialog.count() === 0 && (await api.noteNames()).includes(name));
+    check(`${scheme}: and keeps editing`, await inEditor());
+    await A.p.keyboard.press("Escape"); await A.wait(1000);
+
     await edit();
     await A.p.locator('textarea[aria-label="Content"] >> visible=true').click(); await A.wait(800);
     check(`${scheme}: a click in the note keeps editing`, await inEditor());

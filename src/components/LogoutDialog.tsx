@@ -25,6 +25,9 @@ export default function LogoutDialog(props: { visible: boolean, onDismiss: (logg
         dispatch(logout(etebase) as any);
 
         persistor.persist();
+        // (written before the app is reloaded, which would drop the writes still waiting, and so
+        // still be logged in)
+        await persistor.flush();
 
         props.onDismiss(true);
       }}

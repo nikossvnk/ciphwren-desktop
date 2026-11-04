@@ -24,6 +24,7 @@ import { mono, tint } from "./style";
 import * as Etebase from "etebase";
 import { swatches } from "../constants";
 import { formatShortcuts } from "../widgets/FormatBar";
+import { useEscape } from "../helpers";
 
 interface DialogsType {
   // (stay: the screen it's opened from stays, e.g. a new note that waits for a notebook to be in)
@@ -75,6 +76,7 @@ export function Frame(props: React.PropsWithChildren<{ title: string, steps?: { 
   const theme = useTheme();
   const etebase = useCredentials();
   const window = useWindowDimensions();
+  useEscape(props.onClose, true);
   return (
     <Portal>
       <Modal

@@ -424,6 +424,8 @@ export interface SettingsType {
   fontSize: number;
   // Whether the pinned notes are folded away (above the notes)
   pinnedCollapsed?: boolean;
+  // The pinned notes as cards two per row, instead of one (as wide as the other notes)
+  pinnedTwoColumns?: boolean;
   // Whether the sidebar with the notebooks and notes is shown on wide screens
   sidebarVisible: boolean;
   // Its width in pixels, which can be changed by dragging its edge
