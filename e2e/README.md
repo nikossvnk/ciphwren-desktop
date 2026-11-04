@@ -42,6 +42,16 @@ A full run takes about 15 minutes, as the tests wait for syncs and reconnections
 emptying the test account (deleting all of its notebooks), as the notes that earlier runs left behind
 fill the lists the tests look in; `E2E_KEEP_DATA=1` skips that. Running some of the tests keeps the data.
 
+## Sample data
+
+`node seed.js` fills the account (`E2E_USER`, `E2E_PASSWORD`; it's created when it doesn't exist)
+with sample data to try the app with: two notebooks of notes (two of them pinned), a calendar with
+events around today, a task list, an address book and bookmarks. Running it again adds them again.
+
+```
+E2E_USER=aio-tester E2E_PASSWORD=aio-tester-password node seed.js
+```
+
 ## Configuration
 
 | Variable | Default | |
