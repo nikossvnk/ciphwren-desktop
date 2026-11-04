@@ -8,26 +8,50 @@ import { IconButton, Text, Tooltip, TouchableRipple } from "react-native-paper";
 import { code, Edit, heading, link, linePrefix, wrap } from "../markdownFormat";
 import { fonts, useTheme } from "../theme";
 
-type Button = { icon: string, label: string, apply: (edit: Edit) => Edit };
+// A button's keyboard shortcut is ctrl (or cmd) with the key (by its place, as with shift the
+// digits type other characters) and maybe shift
+type Button = { icon: string, label: string, apply: (edit: Edit) => Edit, keys?: { code: string, shift?: boolean } };
 
 const groups: Button[][] = [
   [
-    { icon: "format-header-pound", label: "Heading", apply: heading },
-    { icon: "format-bold", label: "Bold", apply: (e) => wrap(e, "**", "bold text") },
-    { icon: "format-italic", label: "Italic", apply: (e) => wrap(e, "_", "italic text") },
-    { icon: "format-strikethrough-variant", label: "Strikethrough", apply: (e) => wrap(e, "~~", "struck text") },
+    { icon: "format-header-pound", label: "Heading", apply: heading, keys: { code: "KeyH", shift: true } },
+    { icon: "format-bold", label: "Bold", apply: (e) => wrap(e, "**", "bold text"), keys: { code: "KeyB" } },
+    { icon: "format-italic", label: "Italic", apply: (e) => wrap(e, "_", "italic text"), keys: { code: "KeyI" } },
+    { icon: "format-strikethrough-variant", label: "Strikethrough", apply: (e) => wrap(e, "~~", "struck text"), keys: { code: "KeyX", shift: true } },
   ],
   [
-    { icon: "format-list-bulleted", label: "Bulleted list", apply: (e) => linePrefix(e, "- ") },
-    { icon: "format-list-numbered", label: "Numbered list", apply: (e) => linePrefix(e, "1. ") },
-    { icon: "format-list-checks", label: "Checklist", apply: (e) => linePrefix(e, "- [ ] ") },
+    { icon: "format-list-bulleted", label: "Bulleted list", apply: (e) => linePrefix(e, "- "), keys: { code: "Digit8", shift: true } },
+    { icon: "format-list-numbered", label: "Numbered list", apply: (e) => linePrefix(e, "1. "), keys: { code: "Digit7", shift: true } },
+    { icon: "format-list-checks", label: "Checklist", apply: (e) => linePrefix(e, "- [ ] "), keys: { code: "Digit9", shift: true } },
   ],
   [
-    { icon: "format-quote-close", label: "Quote", apply: (e) => linePrefix(e, "> ") },
-    { icon: "code-tags", label: "Code", apply: code },
-    { icon: "link-variant", label: "Insert link", apply: link },
+    { icon: "format-quote-close", label: "Quote", apply: (e) => linePrefix(e, "> "), keys: { code: "Period", shift: true } },
+    { icon: "code-tags", label: "Code", apply: code, keys: { code: "KeyE" } },
+    { icon: "link-variant", label: "Insert link", apply: link, keys: { code: "KeyK" } },
   ],
 ];
+
+// The formatting a key press in the editor asks for: a button's shortcut
+export function formatShortcut(e: KeyboardEvent): ((edit: Edit) => Edit) | undefined {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) {
+    return undefined;
+  }
+  return groups.flat().find((x) => x.keys && (x.keys.code === e.code) && (!!x.keys.shift === e.shiftKey))?.apply;
+}
+
+// The keys of a button's shortcut, e.g. ["Ctrl", "Shift", "8"]
+function shortcutKeys(keys: NonNullable<Button["keys"]>) {
+  const key = (keys.code === "Period") ? "." : keys.code.replace(/^(Key|Digit)/, "");
+  return ["Ctrl", ...((keys.shift) ? ["Shift"] : []), key];
+}
+
+// For the list of the keyboard shortcuts
+export const formatShortcuts = groups.flat().flatMap<[string[], string]>((x) => (x.keys) ? [[shortcutKeys(x.keys), x.label]] : []);
+
+// E.g. "Bold (Ctrl+B)"
+function tooltip(button: Button) {
+  return (button.keys) ? `${button.label} (${shortcutKeys(button.keys).join("+")})` : button.label;
+}
 
 interface PropsType {
   // Applies a change of the Markdown to the note, around its selection
@@ -52,7 +76,7 @@ export default function FormatBar(props: PropsType) {
           <React.Fragment key={i}>
             {(i > 0) && <View style={[styles.separator, { backgroundColor: theme.colors.border }]} />}
             {group.map((button) => (
-              <Tooltip key={button.label} title={button.label}>
+              <Tooltip key={button.label} title={tooltip(button)}>
                 <IconButton
                   icon={button.icon}
                   size={20}

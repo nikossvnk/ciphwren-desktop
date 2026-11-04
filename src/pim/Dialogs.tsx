@@ -23,6 +23,7 @@ import { CollectionPicker } from "./widgets";
 import { mono, tint } from "./style";
 import * as Etebase from "etebase";
 import { swatches } from "../constants";
+import { formatShortcuts } from "../widgets/FormatBar";
 
 interface DialogsType {
   // (stay: the screen it's opened from stays, e.g. a new note that waits for a notebook to be in)
@@ -150,6 +151,11 @@ const shortcuts: { title: string, items: [string[], string][] }[] = [
     [["Esc"], "Stop editing the note"],
     [["Ctrl", "Click"], "Select several notes (Esc selects none)"],
     [["Right click"], "Move or delete the note, or the selected ones"],
+  ] },
+  { title: "Editing a note", items: [
+    ...formatShortcuts,
+    [["`"], "Put the selected text in code"],
+    [["Ctrl", "V"], "Paste formatted text (from a page or a document) as Markdown"],
   ] },
   { title: "Tasks", items: [
     [["Enter"], "Add the task typed at the top, or a subtask"],
