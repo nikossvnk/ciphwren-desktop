@@ -30,6 +30,10 @@ const getStyles = (theme: Theme, fontSize: number, fontFamilyKey: FontFamilyKey)
     border: theme.colors.border,
     blockBackground: (theme.dark) ? "#232428" : "#F6F6F2",
     blockText: theme.colors.textBody,
+    // Code stands out from the sheet (white, or the dark surface) and from quotes, inline code also by its color
+    codeBackground: (theme.dark) ? "#2D2F35" : "#ECECE5",
+    codeBorder: (theme.dark) ? "#3B3E45" : "#DDDDD4",
+    inlineCodeText: (theme.dark) ? "#F2A68E" : "#A63A1C",
     link: theme.colors.accent,
   };
 
@@ -99,16 +103,17 @@ const getStyles = (theme: Theme, fontSize: number, fontFamilyKey: FontFamilyKey)
       borderColor: extraColors.link,
     },
     code_inline: {
-      backgroundColor: extraColors.blockBackground,
+      backgroundColor: extraColors.codeBackground,
       borderWidth: 0,
       borderRadius: 4,
-      color: extraColors.blockText,
+      color: extraColors.inlineCodeText,
       fontFamily: fontFamilies.monospace,
       padding: 3,
     },
     code_block: {
-      backgroundColor: extraColors.blockBackground,
-      borderColor: extraColors.border,
+      backgroundColor: extraColors.codeBackground,
+      borderColor: extraColors.codeBorder,
+      borderWidth: 1,
       borderRadius: 10,
       color: extraColors.blockText,
       fontFamily: fontFamilies.monospace,
@@ -116,8 +121,9 @@ const getStyles = (theme: Theme, fontSize: number, fontFamilyKey: FontFamilyKey)
       padding: defaults.margin,
     },
     fence: {
-      backgroundColor: extraColors.blockBackground,
-      borderColor: extraColors.border,
+      backgroundColor: extraColors.codeBackground,
+      borderColor: extraColors.codeBorder,
+      borderWidth: 1,
       borderRadius: 10,
       color: extraColors.blockText,
       fontFamily: fontFamilies.monospace,
