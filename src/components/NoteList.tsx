@@ -1,7 +1,7 @@
 import * as React from "react";
 import { DateFormats, formatChanged, useDateFormats } from "../pim/format";
 import { FlatList, StyleSheet, View } from "react-native";
-import { Text, TouchableRipple } from "react-native-paper";
+import { IconButton, Text, Tooltip, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import * as Etebase from "etebase";
@@ -179,7 +179,8 @@ interface NoteCardPropsType {
   itemMgr: Etebase.ItemManager | undefined;
   color: string;
   notebookName?: string;
-  // The last one when there's an odd number of them: as wide as two, with the beginning of the note
+  // As wide as the row (one column, or the last one of two columns when there's an odd number of
+  // them), with the beginning of the note
   wide: boolean;
   // It's open (next to the list), or selected
   current: boolean;
@@ -259,38 +260,57 @@ interface PinnedNotesPropsType {
   onContextMenu?: (note: string, e: any) => void;
 }
 
-// The pinned notes above the others, as cards two per row, under a title that folds them away. Then
-// the title of the other notes.
+// The pinned notes above the others, as cards one per row (as wide as the other notes) or two (a
+// setting, with the button next to the title), under a title that folds them away. Then the title
+// of the other notes.
 export function PinnedNotes(props: PinnedNotesPropsType) {
   const theme = useTheme();
   const dispatch = useDispatch();
   const cacheCollections = useSelector((state: StoreState) => state.cache.collections);
   const collapsed = useSelector((state: StoreState) => !!state.settings.pinnedCollapsed);
+  const twoColumns = useSelector((state: StoreState) => !!state.settings.pinnedTwoColumns);
   const { notes } = props;
   if (notes.length === 0) {
     return null;
   }
+  const perRow = (twoColumns) ? 2 : 1;
   const rows: Entry[][] = [];
-  for (let i = 0 ; i < notes.length ; i += 2) {
-    rows.push(notes.slice(i, i + 2));
+  for (let i = 0 ; i < notes.length ; i += perRow) {
+    rows.push(notes.slice(i, i + perRow));
   }
+  const layoutLabel = (twoColumns) ? "Show pinned notes in one column" : "Show pinned notes in two columns";
 
   return (
     <View style={styles.pinned}>
-      <TouchableRipple
-        accessibilityRole="button"
-        accessibilityLabel={`Pinned, ${notes.length}`}
-        accessibilityState={{ expanded: !collapsed }}
-        aria-expanded={!collapsed}
-        onPress={() => dispatch(setSettings({ pinnedCollapsed: !collapsed }) as any)}
-        style={styles.sectionButton}
-      >
-        <View style={styles.sectionTitleRow}>
-          <MaterialCommunityIcons name={(collapsed) ? "chevron-right" : "chevron-down"} size={15} color={theme.colors.textMuted} />
-          <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]} accessibilityRole="header">Pinned</Text>
-          <Text style={[styles.sectionCount, { color: theme.colors.textMuted }]}>{notes.length}</Text>
-        </View>
-      </TouchableRipple>
+      <View style={styles.pinnedHead}>
+        <TouchableRipple
+          accessibilityRole="button"
+          accessibilityLabel={`Pinned, ${notes.length}`}
+          accessibilityState={{ expanded: !collapsed }}
+          aria-expanded={!collapsed}
+          onPress={() => dispatch(setSettings({ pinnedCollapsed: !collapsed }) as any)}
+          style={styles.sectionButton}
+        >
+          <View style={styles.sectionTitleRow}>
+            <MaterialCommunityIcons name={(collapsed) ? "chevron-right" : "chevron-down"} size={15} color={theme.colors.textMuted} />
+            <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]} accessibilityRole="header">Pinned</Text>
+            <Text style={[styles.sectionCount, { color: theme.colors.textMuted }]}>{notes.length}</Text>
+          </View>
+        </TouchableRipple>
+        {!collapsed && (notes.length > 1) && (
+          <Tooltip title={layoutLabel}>
+            <IconButton
+              icon={(twoColumns) ? "view-agenda-outline" : "view-grid-outline"}
+              size={16}
+              iconColor={theme.colors.textMuted}
+              containerColor="transparent"
+              accessibilityLabel={layoutLabel}
+              onPress={() => dispatch(setSettings({ pinnedTwoColumns: !twoColumns }) as any)}
+              style={styles.layoutButton}
+            />
+          </Tooltip>
+        )}
+      </View>
       {!collapsed && (
         <View testID="pinned-notes" style={styles.cards}>
           {rows.map((row) => (
@@ -524,6 +544,16 @@ const styles = StyleSheet.create({
   },
   pinned: {
     marginBottom: 4,
+  },
+  pinnedHead: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  layoutButton: {
+    margin: 0,
+    width: 30,
+    height: 30,
   },
   sectionButton: {
     alignSelf: "flex-start",

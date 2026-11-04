@@ -46,7 +46,8 @@ run(async () => {
   await A.p.locator("body").click({ position: { x: 700, y: 880 } });
   await A.p.keyboard.press("?"); await A.wait(800);
   check("? shows them when not typing", await shortcuts.count() === 1);
-  await closeShortcuts();
+  await A.p.keyboard.press("Escape"); await A.wait(600);
+  check("Escape closes the list", await shortcuts.count() === 0);
   await A.p.getByRole("button", { name: "Account menu" }).click(); await A.wait(600);
   await A.p.getByRole("menuitem", { name: "Keyboard shortcuts" }).click(); await A.wait(800);
   check("and so does the account menu", await shortcuts.count() === 1);

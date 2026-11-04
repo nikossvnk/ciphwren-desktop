@@ -61,6 +61,50 @@ export function useIsMounted() {
   return isMounted;
 }
 
+// The open dialogs that close with Escape (on the web), the last opened on top: only that one closes
+const escapeStack: React.RefObject<(() => void) | undefined>[] = [];
+
+// Whether a dialog that closes with Escape is open (so that Escape is for it, not the screen under it)
+export function dialogOpen() {
+  return escapeStack.length > 0;
+}
+
+function onEscapeKey(e: KeyboardEvent) {
+  // (an open menu closes first, by itself)
+  if ((e.key !== "Escape") || document.querySelector('[role="menu"]')) {
+    return;
+  }
+  const close = escapeStack[escapeStack.length - 1]?.current;
+  if (close) {
+    // (not for the screen under the dialog, e.g. the note editor, which Escape leaves)
+    e.preventDefault();
+    e.stopPropagation();
+    close();
+  }
+}
+
+// Closes a dialog with Escape while it's open
+export function useEscape(onEscape: (() => void) | undefined, open: boolean) {
+  const ref = React.useRef(onEscape);
+  ref.current = onEscape;
+  React.useEffect(() => {
+    if (!open || (Platform.OS !== "web")) {
+      return undefined;
+    }
+    escapeStack.push(ref);
+    if (escapeStack.length === 1) {
+      // (before the text fields, which keep escape to themselves)
+      window.addEventListener("keydown", onEscapeKey, true);
+    }
+    return () => {
+      escapeStack.splice(escapeStack.indexOf(ref), 1);
+      if (escapeStack.length === 0) {
+        window.removeEventListener("keydown", onEscapeKey, true);
+      }
+    };
+  }, [open]);
+}
+
 type PromiseParam = Promise<any> | (() => Promise<any>) | undefined;
 
 export function usePromiseMemo<T>(promise: Promise<T> | undefined | null, deps: React.DependencyList, initial: T | undefined = undefined): T | undefined {

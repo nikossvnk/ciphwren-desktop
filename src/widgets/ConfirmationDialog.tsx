@@ -5,7 +5,7 @@ import * as React from "react";
 import { Keyboard, Platform, ScrollView } from "react-native";
 import { Card, Portal, Modal, Button, ProgressBar, Paragraph, Dialog } from "react-native-paper";
 
-import { isPromise, useDeviceBreakpoint, useIsMounted } from "../helpers";
+import { isPromise, useDeviceBreakpoint, useEscape, useIsMounted } from "../helpers";
 import { useTheme } from "../theme";
 
 interface PropsType {
@@ -37,6 +37,9 @@ export default React.memo(function ConfirmationDialog(props: PropsType) {
   React.useEffect(() => {
     Keyboard.dismiss();
   }, [props.visible]);
+
+  // Escape is the cancel button
+  useEscape(props.onCancel, props.visible && !!props.onCancel && !loading);
 
   function onOk() {
     const ret = props.onOk?.();

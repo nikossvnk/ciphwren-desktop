@@ -109,6 +109,22 @@ run(async () => {
     const metas = await Promise.all([one, two, four].map((x) => api.noteMeta("My Notes", x)));
     return metas.every((x) => x?.pinned === true);
   })());
+  // One card per row, as wide as the other notes; the button next to the title shows two per row
+  const cardWidths = async () => {
+    const width = (await column.locator('[data-testid="pinned-notes"]').boundingBox()).width;
+    const cards = column.locator('[data-testid="pinned-notes"] a');
+    return Promise.all((await cards.all()).map(async (x) => (await x.boundingBox()).width / width));
+  };
+  const oneColumn = await cardWidths();
+  check("the pinned notes are in one column, as wide as the list", oneColumn.length === 4 && oneColumn.every((x) => x > 0.9), oneColumn);
+  await column.getByRole("button", { name: "Show pinned notes in two columns" }).click(); await W.wait(500);
+  const twoColumns = await cardWidths();
+  check("the button shows them two per row", twoColumns.length === 4 && twoColumns.every((x) => x < 0.6), twoColumns);
+  await W.p.reload(); await W.wait(6000);
+  check("which stays after a reload", (await cardWidths()).every((x) => x < 0.6));
+  await column.getByRole("button", { name: "Show pinned notes in one column" }).click(); await W.wait(500);
+  check("and back in one column", (await cardWidths()).every((x) => x > 0.9));
+
   await card(three).click({ modifiers: ["Control"] }); await W.wait(300);
   await card(two).click({ modifiers: ["Control"] }); await W.wait(500);
   // (the open note is in the selection too: three, two and the open one, which are all pinned)

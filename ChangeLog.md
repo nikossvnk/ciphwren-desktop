@@ -6,6 +6,9 @@
 * Text pasted with its formatting (from a web page or a document) is put in the note as Markdown
 * A right click on a note in the notes column pins or unpins it
 * Logging in again after the account was deleted and made again on the server (same name) no longer crashes: the device's data of the old account is removed and the new one's synced
+* Pinned notes are shown one per row, as wide as the other notes (two per row is still a button away)
+* Escape closes dialogs, such as the keyboard shortcuts list
+* "Logout & Reload" (and "Enable Logging & Reload") on the error screen save the change before reloading, instead of sometimes coming back logged in
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it

@@ -30,7 +30,7 @@ import LoadingIndicator from "../widgets/LoadingIndicator";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import NotFound from "../widgets/NotFound";
 import AppbarButton from "../widgets/AppbarButton";
-import { fontFamilies } from "../helpers";
+import { dialogOpen, fontFamilies } from "../helpers";
 import Select from "../widgets/Select";
 import { RootStackParamList } from "../RootStackParamList";
 import { useWideLayout } from "../components/WideLayout";
@@ -127,7 +127,7 @@ export default function NoteEditScreen(props: PropsType) {
       return undefined;
     }
     const onKey = (e: KeyboardEvent) => {
-      if ((e.key === "Escape") && !document.querySelector('[role="menu"], [aria-modal="true"]')) {
+      if ((e.key === "Escape") && !dialogOpen() && !document.querySelector('[role="menu"], [aria-modal="true"]')) {
         setLastViewMode(true);
       }
     };
