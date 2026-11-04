@@ -18,7 +18,7 @@ import ScrollView from "./widgets/ScrollView";
 import { logger, LogLevel, getLogs } from "./logging";
 import Container from "./widgets/Container";
 import * as C from "./constants";
-import { setSettings, addError, popError, login } from "./store/actions";
+import { setSettings, addError, popError, login, logout } from "./store/actions";
 import LogoutDialog from "./components/LogoutDialog";
 import ConfirmationDialog from "./widgets/ConfirmationDialog";
 import PasswordInput from "./widgets/PasswordInput";
@@ -49,6 +49,9 @@ function SessionExpiredDialog() {
   const [fetchFailed, setFetchFailed] = React.useState(false);
   const [password, setPassword] = React.useState("");
   const [errorPassword, setErrorPassword] = React.useState<string>();
+  // The account logged in to, when it isn't the one whose data is on the device (it was deleted on
+  // the server and made again with the same name): its data can't be read with the new keys
+  const [replaced, setReplaced] = React.useState<Etebase.Account>();
 
   React.useEffect(() => {
     const fetch = async () => {
@@ -69,6 +72,29 @@ function SessionExpiredDialog() {
     fetch();
   }, []);
 
+  if (replaced) {
+    return (
+      <ConfirmationDialog
+        title="The account was made again"
+        visible
+        onOk={async () => {
+          // The device's data is removed, as logging out does, and the new account's is synced
+          dispatch(logout(etebase) as any);
+          await dispatch(login(replaced) as any);
+          await persistor.flush();
+          Updates.reloadAsync();
+        }}
+        onCancel={() => {
+          dispatch(popError() as any);
+        }}
+      >
+        <Paragraph>
+          The account {etebase.user.username} on this server isn't the one this device has data of: it was deleted and made again. That data can't be read with the new account, so it will be removed from this device (changes that weren't synced are lost), and the account's data on the server is synced instead.
+        </Paragraph>
+      </ConfirmationDialog>
+    );
+  }
+
   return fetchFailed ? (
     <ConfirmationDialog
       title="Session expired"
@@ -82,6 +108,11 @@ function SessionExpiredDialog() {
         try {
           const { user, serverUrl } = etebase;
           const newEtebase = await Etebase.Account.login(user.username, password, serverUrl);
+          // An account made again with the same name has a new identity key
+          if (Etebase.toBase64(newEtebase.getInvitationManager().pubkey) !== Etebase.toBase64(etebase.getInvitationManager().pubkey)) {
+            setReplaced(newEtebase);
+            return;
+          }
 
           dispatch(login(newEtebase) as any);
           dispatch(popError() as any);

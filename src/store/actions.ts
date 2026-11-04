@@ -224,8 +224,9 @@ export const logout = createAction(
   (creds: Etebase.Account) => {
     (async () => {
       const etebase = creds;
-      // We don't wait on purpose, because we would like to logout and clear local data anyway
-      etebase.logout();
+      // We don't wait on purpose, because we would like to logout and clear local data anyway (also
+      // when the token is no longer valid, e.g. the account was deleted, which the server refuses)
+      etebase.logout().catch(() => undefined);
     })();
     return true; // We are not waiting on the above on purpose for now, just invalidate the token in the background
   }
