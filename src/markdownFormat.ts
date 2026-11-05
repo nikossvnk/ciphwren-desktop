@@ -135,10 +135,21 @@ export function code(edit: Edit): Edit {
   return { text: text.slice(0, start) + result + text.slice(end), start, end: start + result.length };
 }
 
-// A link: the selection becomes its text, and the address is selected to be typed in
+// A link: the selection becomes its text, and the address is selected to be typed in. A selected
+// address becomes the link's address and its text too, which is selected to be typed over with a title.
 export function link(edit: Edit): Edit {
   const { text, start, end } = edit;
-  const label = text.slice(start, end) || "text";
+  const selected = text.slice(start, end);
+  const url = selected.trim();
+  if (isAddress(url)) {
+    const from = start + selected.indexOf(url);
+    // (brackets in the text and parentheses in the address would end them early)
+    const label = url.replace(/[[\]]/g, "\\$&");
+    const href = ((/^www\./i.test(url)) ? `https://${url}` : url).replace(/\(/g, "%28").replace(/\)/g, "%29");
+    const result = `[${label}](${href})`;
+    return { text: text.slice(0, from) + result + text.slice(from + url.length), start: from + 1, end: from + 1 + label.length };
+  }
+  const label = selected || "text";
   const result = `[${label}](https://)`;
   const urlStart = start + label.length + 3;
   return {
@@ -147,4 +158,10 @@ export function link(edit: Edit): Edit {
     start: (start === end) ? start + 1 : urlStart,
     end: (start === end) ? start + 1 + label.length : urlStart + "https://".length,
   };
+}
+
+// Whether a selection is an address on its own: a web, ftp or email link, or one starting with "www."
+// (a word with a dot, e.g. "e.g.", or with a colon isn't taken for one)
+function isAddress(text: string) {
+  return /^((https?|ftp):\/\/[^\s/?#]+|mailto:[^\s@]+@[^\s@]+|www\.[^\s/?#.]+\.[^\s/?#]+)[^\s<>]*$/i.test(text);
 }
