@@ -372,6 +372,16 @@ run(async () => {
   await btn(/^save$/i).click(); await wait(2500);
   check("a due date set in the editor is on the server", await waitForServer(etebase, (s) => s.some((x) => (x.type === types.tasks) &&
     x.contents.some((c) => c.includes(`SUMMARY:Call mom ${n}`) && c.includes(`DUE;VALUE=DATE:${icalDate(due)}`) && c.includes("RRULE:FREQ=WEEKLY")))));
+  await details.getByRole("button", { name: "Edit task" }).click(); await wait(2000);
+  await vis('input[aria-label="Due time"]').fill("14:30"); await wait(300);
+  await btn(/^save$/i).click(); await wait(2500);
+  check("a due time set in the editor is on the server", await waitForServer(etebase, (s) => s.some((x) => (x.type === types.tasks) &&
+    x.contents.some((c) => c.includes(`SUMMARY:Call mom ${n}`) && /^DUE[;:]/m.test(c) && !c.includes("DUE;VALUE=DATE")))), serverDetail(types.tasks)());
+  await details.getByRole("button", { name: "Edit task" }).click(); await wait(2000);
+  check("and the editor shows it again", /^(14:30|2:30\s*PM)$/i.test(await vis('input[aria-label="Due time"]').inputValue()));
+  await btn(/^save$/i).click(); await wait(2500);
+  // (the messages of the saves would cover the sidebar's last rows)
+  await A.dismiss();
 
   // The contacts
   await sideRow("Contacts").click(); await wait(3000);

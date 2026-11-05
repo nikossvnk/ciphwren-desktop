@@ -20,14 +20,14 @@ import Checkbox from "../widgets/Checkbox";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
 import AppbarAction from "../widgets/AppbarAction";
 import * as C from "../constants";
-import { EventType, TaskStatusType, TaskType, utcNow } from "./pim-types";
+import { EventType, TaskStatusType, TaskType, timezoneLoadFromName, utcNow } from "./pim-types";
 import { priorityName } from "./TasksScreen";
 import { useTheme } from "../theme";
 import { deletePimItem, savePimItem, usePimCollections, usePimItems } from "./data";
 import { deleteTaskEvents, linkedEventUid, updateTaskEvent, writableCalendar } from "./taskEvents";
 import { updateSeries } from "./recurrence";
 import { Reminder, reminderKey, remindersOf, setReminders } from "./reminders";
-import { AccentButton, applyRepeat, CollectionPicker, DateTimeInput, Field, FieldInput, fromDateTimeStrings, pimStyles, ReminderPicker, RepeatKey, repeatKeyOf, RepeatPicker, toDateString } from "./widgets";
+import { AccentButton, applyRepeat, CollectionPicker, DateTimeInput, Field, FieldInput, fromDateTimeStrings, pimStyles, ReminderPicker, RepeatKey, repeatKeyOf, RepeatPicker, toDateString, toTimeString } from "./widgets";
 
 interface PropsType {
   route: RouteProp<RootStackParamList, "TaskEdit">;
@@ -51,6 +51,8 @@ export default function TaskEditScreen(props: PropsType) {
   const [title, setTitle] = React.useState("");
   const [list, setList] = React.useState<string>();
   const [due, setDue] = React.useState("");
+  // (empty: due on the day, without a time)
+  const [dueTime, setDueTime] = React.useState("");
   const [done, setDone] = React.useState(false);
   const [description, setDescription] = React.useState("");
   const [priority, setPriority] = React.useState("None");
@@ -71,6 +73,7 @@ export default function TaskEditScreen(props: PropsType) {
       setTitle(existing.title ?? "");
       setList(existing.collectionUid);
       setDue((existing.dueDate) ? toDateString(existing.dueDate.toJSDate()) : "");
+      setDueTime((existing.dueDate && !existing.dueDate.isDate) ? toTimeString(existing.dueDate.toJSDate()) : "");
       setDone(existing.finished);
       setDescription(existing.description ?? "");
       setPriority(priorityName(existing));
@@ -117,19 +120,23 @@ export default function TaskEditScreen(props: PropsType) {
     }
     let dueDate: ICAL.Time | undefined;
     if (due.trim()) {
-      const date = fromDateTimeStrings(due);
+      const date = fromDateTimeStrings(due, dueTime || undefined);
       if (!date) {
-        setError("The due date has to be a valid date");
+        setError("The due date and time have to be valid");
         return;
       }
-      // Only the day is chosen here, so keep the time of a due date that has one
-      if (existing?.dueDate && !existing.dueDate.isDate) {
-        dueDate = existing.dueDate.clone();
-        dueDate.year = date.getFullYear();
-        dueDate.month = date.getMonth() + 1;
-        dueDate.day = date.getDate();
-      } else {
+      const old = existing?.dueDate;
+      if (old && (toDateString(old.toJSDate()) === due) && (((old.isDate) ? "" : toTimeString(old.toJSDate())) === dueTime)) {
+        // Unchanged: kept as it is (e.g. in the time zone another app saved it in)
+        dueDate = old.clone();
+      } else if (!dueTime) {
         dueDate = ICAL.Time.fromData({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate(), isDate: true });
+      } else {
+        // In this device's time zone, or in UTC if it isn't known (never a floating time)
+        const zone = timezoneLoadFromName(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        dueDate = (zone) ?
+          ICAL.Time.fromData({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate(), hour: date.getHours(), minute: date.getMinutes(), second: 0, isDate: false }, zone) :
+          ICAL.Time.fromJSDate(date, true);
       }
     }
 
@@ -203,9 +210,13 @@ export default function TaskEditScreen(props: PropsType) {
           <CollectionPicker label="Task list" collections={lists} value={list} onChange={setList} />
         </Field>
         <Field label="Due">
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
             <DateTimeInput mode="date" value={due} onChange={setDue} accessibilityLabel="Due date" />
-            {!!due && <Text onPress={() => setDue("")} style={{ textDecorationLine: "underline" }}>Clear</Text>}
+            {!!due && <DateTimeInput mode="time" value={dueTime} onChange={setDueTime} accessibilityLabel="Due time" />}
+            {!!due && <Text onPress={() => {
+              setDue("");
+              setDueTime("");
+            }} style={{ textDecorationLine: "underline" }}>Clear</Text>}
           </View>
         </Field>
         {!!due && (calendars.length > 0) && (
@@ -219,7 +230,7 @@ export default function TaskEditScreen(props: PropsType) {
           </View>
         )}
         <Field label="Reminders">
-          <ReminderPicker value={reminders} onChange={setRemindersState} allDay={!existing?.dueDate || existing.dueDate.isDate} isTask />
+          <ReminderPicker value={reminders} onChange={setRemindersState} allDay={!due || !dueTime} isTask />
         </Field>
         <Field label="Repeat">
           <RepeatPicker value={repeat} onChange={setRepeat} />
