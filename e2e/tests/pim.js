@@ -380,6 +380,8 @@ run(async () => {
   await details.getByRole("button", { name: "Edit task" }).click(); await wait(2000);
   check("and the editor shows it again", /^(14:30|2:30\s*PM)$/i.test(await vis('input[aria-label="Due time"]').inputValue()));
   await btn(/^save$/i).click(); await wait(2500);
+  // (the messages of the saves would cover the sidebar's last rows)
+  await A.dismiss();
 
   // The contacts
   await sideRow("Contacts").click(); await wait(3000);
