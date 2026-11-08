@@ -10,6 +10,7 @@
 * Escape closes dialogs, such as the keyboard shortcuts list
 * "Logout & Reload" (and "Enable Logging & Reload") on the error screen save the change before reloading, instead of sometimes coming back logged in
 * Code in notes stands out more in the viewer: a darker background, a border around code blocks, and inline code in its own color
+* Text copied from the note viewer keeps its formatting but not the theme's colours (it was pasted elsewhere as light text on a dark background), and Ctrl+A in the viewer selects the note's text instead of the whole page
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it
