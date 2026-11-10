@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
-import { IconButton, Snackbar, Text, TouchableRipple } from "react-native-paper";
+import { IconButton, Menu, Snackbar, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -193,7 +193,11 @@ interface RowProps {
   fmt: DateFormats;
   onToggle: (task: TaskType) => void;
   onPress: (task: TaskType) => void;
+  // A right click on the task (on the web)
+  onContextMenu: (task: TaskType, e: ContextMenuEvent) => void;
 }
+
+type ContextMenuEvent = { preventDefault: () => void, nativeEvent: { pageX: number, pageY: number } };
 
 function TaskRow(props: RowProps) {
   const theme = useTheme();
@@ -203,49 +207,52 @@ function TaskRow(props: RowProps) {
   const priority = priorityOf(task);
   return (
     // (the checkbox is in the row's button, so that the whole row is highlighted under the pointer)
-    <TouchableRipple
-      accessibilityRole="button"
-      accessibilityLabel={`Task ${task.title}`}
-      aria-selected={props.selected}
-      onPress={() => props.onPress(task)}
-    >
-      <View style={styles.row}>
-        <Check task={task} onPress={() => props.onToggle(task)} />
-        <View style={[styles.rowInner, { flex: 1 }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text numberOfLines={2} style={[styles.title, { color: (task.finished) ? theme.colors.textMuted : theme.colors.text },
-              (task.finished) ? { textDecorationLine: "line-through" } : undefined]}>
-              {task.title || "(no title)"}
-            </Text>
-            <View style={styles.meta}>
-              {list && (
-                <View style={styles.metaItem}>
-                  <View style={[styles.dot, { backgroundColor: list.color }]} />
-                  <Text style={styles.metaText(theme)}>{list.name}</Text>
-                </View>
-              )}
-              {(subtasks.length > 0) && (
-                <View style={styles.metaItem} accessibilityLabel={`${done} of ${subtasks.length} subtasks done`}>
-                  <MaterialCommunityIcons name="file-tree-outline" size={13} color={theme.colors.textMuted} />
-                  <Text style={styles.metaText(theme)}>{done}/{subtasks.length}</Text>
-                </View>
-              )}
-              {task.isRecurring() && <MaterialCommunityIcons name="repeat" size={13} color={theme.colors.textMuted} />}
-              {!!task.description && <MaterialCommunityIcons name="text" size={13} color={theme.colors.textMuted} />}
+    // (View has no onContextMenu in its types, but react-native-web passes it on)
+    <View {...{ onContextMenu: (e: ContextMenuEvent) => props.onContextMenu(task, e) } as object}>
+      <TouchableRipple
+        accessibilityRole="button"
+        accessibilityLabel={`Task ${task.title}`}
+        aria-selected={props.selected}
+        onPress={() => props.onPress(task)}
+      >
+        <View style={styles.row}>
+          <Check task={task} onPress={() => props.onToggle(task)} />
+          <View style={[styles.rowInner, { flex: 1 }]}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text numberOfLines={2} style={[styles.title, { color: (task.finished) ? theme.colors.textMuted : theme.colors.text },
+                (task.finished) ? { textDecorationLine: "line-through" } : undefined]}>
+                {task.title || "(no title)"}
+              </Text>
+              <View style={styles.meta}>
+                {list && (
+                  <View style={styles.metaItem}>
+                    <View style={[styles.dot, { backgroundColor: list.color }]} />
+                    <Text style={styles.metaText(theme)}>{list.name}</Text>
+                  </View>
+                )}
+                {(subtasks.length > 0) && (
+                  <View style={styles.metaItem} accessibilityLabel={`${done} of ${subtasks.length} subtasks done`}>
+                    <MaterialCommunityIcons name="file-tree-outline" size={13} color={theme.colors.textMuted} />
+                    <Text style={styles.metaText(theme)}>{done}/{subtasks.length}</Text>
+                  </View>
+                )}
+                {task.isRecurring() && <MaterialCommunityIcons name="repeat" size={13} color={theme.colors.textMuted} />}
+                {!!task.description && <MaterialCommunityIcons name="text" size={13} color={theme.colors.textMuted} />}
+              </View>
             </View>
+            <View style={[styles.priority, { opacity: (task.finished) ? 0.45 : 1 }]} accessibilityLabel={priorityTitle(priority)}>
+              {(priority !== "none") && (
+                <>
+                  <PriorityBars priority={priority} />
+                  <Text style={[styles.metaText(theme), { fontFamily: fonts.medium, color: theme.colors.textSecondary }]}>{priorityLabels[priority]}</Text>
+                </>
+              )}
+            </View>
+            <Text style={[styles.due, { color: (task.overdue && !task.finished) ? theme.colors.error : theme.colors.textMuted }]}>{due ?? ""}</Text>
           </View>
-          <View style={[styles.priority, { opacity: (task.finished) ? 0.45 : 1 }]} accessibilityLabel={priorityTitle(priority)}>
-            {(priority !== "none") && (
-              <>
-                <PriorityBars priority={priority} />
-                <Text style={[styles.metaText(theme), { fontFamily: fonts.medium, color: theme.colors.textSecondary }]}>{priorityLabels[priority]}</Text>
-              </>
-            )}
-          </View>
-          <Text style={[styles.due, { color: (task.overdue && !task.finished) ? theme.colors.error : theme.colors.textMuted }]}>{due ?? ""}</Text>
         </View>
-      </View>
-    </TouchableRipple>
+      </TouchableRipple>
+    </View>
   );
 }
 
@@ -366,6 +373,9 @@ export default function TasksScreen() {
   // The task that was just marked as done, which can be undone
   const [justDone, setJustDone] = React.useState<{ task: TaskType, next: TaskType | null }>();
   const [deleteDoneShown, setDeleteDoneShown] = React.useState(false);
+  // The menu of a right click on a task, and the task to delete from it
+  const [menu, setMenu] = React.useState<{ task: TaskType, x: number, y: number }>();
+  const [deleting, setDeleting] = React.useState<TaskType>();
   const fmt = useDateFormats();
 
   const byList = React.useMemo(() => new Map(lists.map((x) => [x.colUid, x])), [lists]);
@@ -460,6 +470,24 @@ export default function TasksScreen() {
     }
   }
 
+  function contextMenu(task: TaskType, e: ContextMenuEvent) {
+    e.preventDefault();
+    setMenu({ task, x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+  }
+
+  function edit(task: TaskType) {
+    navigation.navigate("TaskEdit", { colUid: task.collectionUid, itemUid: task.itemUid });
+  }
+
+  async function deleteTask() {
+    const task = deleting!;
+    setDeleting(undefined);
+    setJustDone(undefined);
+    await deleteTaskEvents(etebase, [task]);
+    await deletePimItem(etebase, task);
+    dispatch(pushMessage({ message: "Task deleted", severity: "success" }) as any);
+  }
+
   const listName = (filter) ? byList.get(filter)?.name : "All tasks";
   const taskRow = (task: TaskType, idx: number) => (
     <View key={task.uid} style={[(idx > 0) ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.divider } : undefined,
@@ -472,6 +500,7 @@ export default function TasksScreen() {
         fmt={fmt}
         onToggle={toggle}
         onPress={press}
+        onContextMenu={contextMenu}
       />
     </View>
   );
@@ -635,7 +664,7 @@ export default function TasksScreen() {
             subtasks={subtasksOf(selected)}
             fmt={fmt}
             onToggle={toggle}
-            onEdit={() => navigation.navigate("TaskEdit", { colUid: selected.collectionUid, itemUid: selected.itemUid })}
+            onEdit={() => edit(selected)}
             onClose={() => setSelectedUid(undefined)}
           />
         </ScrollView>
@@ -651,6 +680,35 @@ export default function TasksScreen() {
           Delete the {(doneShown.length === 1) ? "completed task" : `${doneShown.length} completed tasks`}{(filtering) ? ` with ${shownPriorities.join(", ")} priority` : ""} in {listName}? This can't be undone.
         </Text>
       </ConfirmationDialog>
+      <ConfirmationDialog
+        title="Delete task"
+        visible={!!deleting}
+        labelOk="Delete"
+        onOk={deleteTask}
+        onCancel={() => setDeleting(undefined)}
+      >
+        <Text>Delete “{deleting?.title || "(no title)"}”? This can't be undone.</Text>
+      </ConfirmationDialog>
+      {menu && (
+        <Menu visible onDismiss={() => setMenu(undefined)} anchor={{ x: menu.x, y: menu.y }}>
+          <Menu.Item
+            title="Edit"
+            leadingIcon="pencil-outline"
+            onPress={() => {
+              setMenu(undefined);
+              edit(menu.task);
+            }}
+          />
+          <Menu.Item
+            title="Delete"
+            leadingIcon="delete-outline"
+            onPress={() => {
+              setMenu(undefined);
+              setDeleting(menu.task);
+            }}
+          />
+        </Menu>
+      )}
       <Snackbar
         visible={!!justDone}
         onDismiss={() => setJustDone(undefined)}
