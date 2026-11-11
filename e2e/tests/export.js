@@ -46,12 +46,12 @@ run(async () => {
     A.p.waitForEvent("download", { timeout: 30000 }),
     A.p.getByText("Export Notes", { exact: true }).locator("visible=true").first().click(),
   ]);
-  check("the file is named after the app and the day", /^etesync-notes-\d{4}-\d{2}-\d{2}\.zip$/.test(download.suggestedFilename()), download.suggestedFilename());
+  check("the file is named after the app and the day", /^ciphwren-desktop-\d{4}-\d{2}-\d{2}\.zip$/.test(download.suggestedFilename()), download.suggestedFilename());
   const zip = unzipSync(fs.readFileSync(await download.path()));
   const files = Object.keys(zip).filter((x) => !x.endsWith("/"));
   const read = (path) => (zip[path] ? strFromU8(zip[path]) : undefined);
   await A.wait(1000);
-  const message = (await A.text()).match(/Exported (\d+) notes? to etesync-notes-[\d-]+\.zip/);
+  const message = (await A.text()).match(/Exported (\d+) notes? to ciphwren-desktop-[\d-]+\.zip/);
   check("it says how many notes were exported", message && Number(message[1]) === files.length, [message && message[0], files.length]);
   check("every file is a note in a notebook's folder", files.every((x) => /^[^/]+\/[^/]+\.md$/.test(x)), files.filter((x) => !/^[^/]+\/[^/]+\.md$/.test(x)));
 

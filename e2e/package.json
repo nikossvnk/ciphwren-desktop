@@ -1,5 +1,5 @@
 {
-  "name": "etesync-notes-e2e",
+  "name": "ciphwren-desktop-e2e",
   "private": true,
   "description": "Browser tests of the web build of EteSync Notes against an Etebase test server",
   "scripts": {

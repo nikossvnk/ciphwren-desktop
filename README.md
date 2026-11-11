@@ -1,18 +1,18 @@
-# EteSync all-in-one
+# Ciphwren Desktop
 
-One app for notes, bookmarks, calendar, tasks and contacts on EteSync (Etebase), made from
-[etesync-notes](../etesync-notes) and [etesync-web](../etesync-web). It's a copy: the two projects
+One app for notes, bookmarks, calendar, tasks and contacts on an Etebase server, made from
+[ciphwren-notes](https://github.com/nikossvnk/ciphwren-notes) and [ciphwren-web](https://github.com/nikossvnk/ciphwren-web). It's a copy: the two projects
 themselves are not changed.
 
-- **The base is etesync-notes**: its UI (react-native-paper, the sidebar, the theme), its offline-first
+- **The base is ciphwren-notes**: its UI (react-native-paper, the sidebar, the theme), its offline-first
   sync (changes are kept on the device and pushed later, conflicts are resolved) and its screens.
-  It's still a React Native app; it's built for the web only (the Android app is etesync-notes).
-- **From etesync-web** comes the logic, not the UI: the calendar, task and contact model
+  It's still a React Native app; it's built for the web only (the Android app is ciphwren-notes).
+- **From ciphwren-web** comes the logic, not the UI: the calendar, task and contact model
   (`src/pim/pim-types.ts`, iCalendar and vCard through ical.js, with the time zones), how items are
   made and changed (UIDs, all day events ending on the next day, repeating tasks getting their next
   time when done, …), the first run wizard that makes a calendar, a task list and an address book,
   and its settings (date and time format, task sorting).
-- **From etesync-notes' Android app** come the bookmarks (`src/bookmarks.ts`): the same collection
+- **From ciphwren-notes' Android app** come the bookmarks (`src/bookmarks.ts`): the same collection
   type (`etebase.bookmark`) and data, so the bookmarks saved on the phone are the ones here.
 - **New** are the Bookmarks, Calendar, Tasks and Contacts screens, made with the components and theme of the
   notes, in the sidebar (wide screens) and the drawer (phones).
@@ -68,7 +68,7 @@ More options (port, browser) and how releases are made are in `desktop/README.md
   its name or content was changed here (the revision the change was made to is looked up to tell),
   and a pin made here is kept on the version from elsewhere, as in EteSync Notes.
 - `src/pim/`: the new screens, `data.ts` (reading and saving items through the notes' offline
-  queue) and the model from etesync-web.
+  queue) and the model from ciphwren-web.
 
 ### The stored data
 
@@ -207,5 +207,5 @@ day view's "Tasks due" without them).
   collection's changes (e.g. to bring back a deleted item).
 - Sharing calendars (members, invitations) uses what the notes have, which is made for notebooks.
 - Linking notes to events and tasks, favourite contacts, a board view of the tasks (the designs have them, the data has nothing for them yet).
-- Licenses: etesync-notes is GPL-3.0 and etesync-web is AGPL-3.0. Files taken from etesync-web keep
+- Licenses: ciphwren-notes is GPL-3.0 and ciphwren-web is AGPL-3.0. Files taken from ciphwren-web keep
   their AGPL-3.0 notice, and the combination has to follow the AGPL (both texts are in `LICENSES/`).
