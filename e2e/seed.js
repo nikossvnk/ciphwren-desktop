@@ -16,7 +16,7 @@ const calendar = (lines) => ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ciphwr
 
 const notes = {
   "Personal": [
-    ["Welcome", "# Welcome\n\nThis is **sample data** to try the app with.\n\n- Notes are _Markdown_\n- [ ] Tick this task\n- [x] Already done\n\n> Quotes, `code` and [links](https://github.com/nikossvnk/ciphwren-desktop) work too.", true],
+    ["Welcome", "# Welcome\n\nThis is **sample data** to try the app with.\n\n- Notes are _Markdown_\n- [ ] Tick this task\n- [x] Already done\n\n> Quotes, `code` and [links](https://example.com) work too.", true],
     ["Groceries", "- [ ] Milk\n- [ ] Bread\n- [x] Coffee\n- [ ] Apples\n- [ ] Olive oil"],
     ["Books to read", "1. The Left Hand of Darkness\n2. Piranesi\n3. A Psalm for the Wild-Built\n\n~~Dune~~ (read it)"],
     ["Trip ideas", "## Summer\n\n- Crete, the south coast\n- Hiking in the Dolomites\n\n## Weekend\n\n- Spreewald by canoe"],
@@ -59,7 +59,7 @@ const contacts = [
 
 const bookmarks = [
   ["EteSync", "https://www.etesync.com/", "End-to-end encrypted sync", ["sync", "privacy"]],
-  ["ciphwren-desktop on GitHub", "https://github.com/nikossvnk/ciphwren-desktop", "This app", ["dev"]],
+  ["Example bookmark", "https://example.com", "A sample link", ["dev"]],
   ["MDN Web Docs", "https://developer.mozilla.org/", "", ["dev", "reference"]],
   ["Spreewald", "https://en.wikipedia.org/wiki/Spreewald", "Weekend trip idea", ["travel"]],
   ["Markdown guide", "https://www.markdownguide.org/basic-syntax/", "", ["reference"]],
