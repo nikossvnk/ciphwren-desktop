@@ -1,11 +1,12 @@
-// SPDX-FileCopyrightText: © 2026 EteSync Desktop Authors
+// SPDX-FileCopyrightText: © 2026 Ciphwren Desktop Authors
 // SPDX-License-Identifier: GPL-3.0-only
 
 // An event in the calendar for a task with a due date, on its due day. The two are linked both ways
-// in the synced data, so every device keeps them together: the task has X-ETESYNC-DESKTOP-EVENT with
-// the event's UID, and the event X-ETESYNC-DESKTOP-TASK with the task's (RELATED-TO isn't used, apps
-// read it as a task's parent). The event follows the task: its title (with "✓ " when the task is
-// done), its notes and its due date. Without a due date, or when the task is deleted, the event is
+// in the synced data, so every device keeps them together: the task has X-CIPHWREN-EVENT with the
+// event's UID, and the event X-CIPHWREN-TASK with the task's (RELATED-TO isn't used, apps read it as
+// a task's parent). Items linked before the app was renamed have X-ETESYNC-DESKTOP-EVENT and
+// X-ETESYNC-DESKTOP-TASK instead: those are read too, and replaced when the item is saved. The event
+// follows the task: its title (with "✓ " when the task is done), its notes and its due date. Without a due date, or when the task is deleted, the event is
 // deleted too. Changing the event doesn't change the task.
 
 import * as Etebase from "etebase";
@@ -19,15 +20,19 @@ import { EventType, TaskType, textValue, timezoneLoadFromName, tzidOf, utcNow } 
 import { deletePimItems, entriesOfType, loadPimItems, savePimItem } from "./data";
 import { addSeconds, bumpSequence } from "./recurrence";
 
-const eventProperty = "x-etesync-desktop-event";
-const taskProperty = "x-etesync-desktop-task";
+const eventProperty = "x-ciphwren-event";
+const taskProperty = "x-ciphwren-task";
+// (the names before the app was renamed)
+const oldEventProperty = "x-etesync-desktop-event";
+const oldTaskProperty = "x-etesync-desktop-task";
 
 // The UID of the event of a task, if it has one
 export function linkedEventUid(task: TaskType): string | undefined {
-  return textValue(task.component.getFirstPropertyValue(eventProperty)) || undefined;
+  return textValue(task.component.getFirstPropertyValue(eventProperty) ?? task.component.getFirstPropertyValue(oldEventProperty)) || undefined;
 }
 
 export function setLinkedEvent(task: TaskType, eventUid: string | undefined) {
+  task.component.removeAllProperties(oldEventProperty);
   if (eventUid) {
     task.component.updatePropertyWithValue(eventProperty, eventUid);
   } else {
@@ -37,7 +42,7 @@ export function setLinkedEvent(task: TaskType, eventUid: string | undefined) {
 
 // The UID of the task an event is for, if it's one
 export function linkedTaskUid(event: EventType): string | undefined {
-  return textValue(event.component.getFirstPropertyValue(taskProperty)) || undefined;
+  return textValue(event.component.getFirstPropertyValue(taskProperty) ?? event.component.getFirstPropertyValue(oldTaskProperty)) || undefined;
 }
 
 // The event's title: the task's, with a mark when it's done
@@ -68,7 +73,7 @@ export function taskEventTimes(due: ICAL.Time): { start: ICAL.Time, end: ICAL.Ti
 
 // What the event shows of the task, as text, to tell whether it changed
 function shown(event: EventType) {
-  return ["summary", "description", "dtstart", "dtend", taskProperty].map((x) => event.component.getFirstProperty(x)?.toICALString() ?? "").join("\n");
+  return ["summary", "description", "dtstart", "dtend", taskProperty, oldTaskProperty].map((x) => event.component.getFirstProperty(x)?.toICALString() ?? "").join("\n");
 }
 
 // Sets what the event shows of the task. With the task as it was before (`before`), only what
@@ -92,6 +97,7 @@ export function applyTaskToEvent(event: EventType, task: TaskType, before?: Task
     event.endDate = end;
   }
   event.component.updatePropertyWithValue(taskProperty, task.uid);
+  event.component.removeAllProperties(oldTaskProperty);
   return shown(event) !== old;
 }
 

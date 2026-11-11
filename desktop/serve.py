@@ -151,7 +151,7 @@ def notify(title, body):
     desktop's notifications)."""
     title = title or "Reminder"
     if shutil.which("notify-send"):
-        command = ["notify-send", "--app-name=EteSync Desktop"]
+        command = ["notify-send", "--app-name=Ciphwren Desktop"]
         if os.path.exists(ICON):
             command.append(f"--icon={ICON}")
         # (the body can have markup, which the event's text mustn't be taken as; "--" ends the options)
@@ -160,7 +160,7 @@ def notify(title, body):
         # (GVariant's strings are written like JSON's)
         command = ["gdbus", "call", "--session", "--dest=org.freedesktop.Notifications",
                    "--object-path=/org/freedesktop/Notifications", "--method=org.freedesktop.Notifications.Notify", "--",
-                   json.dumps("EteSync Desktop"), "0", json.dumps(ICON if os.path.exists(ICON) else ""),
+                   json.dumps("Ciphwren Desktop"), "0", json.dumps(ICON if os.path.exists(ICON) else ""),
                    json.dumps(title), json.dumps(html.escape(body)), "[]", "{}", "-1"]
     else:
         print("Can't show a reminder: there's neither notify-send nor gdbus", flush=True)
@@ -236,8 +236,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     # Set by main(): the host names (with the port) that requests have to be for. Others are refused,
     # so that a web site can't reach this server through a DNS name it points to 127.0.0.1.
     allowed_hosts = set()
-    # (the launcher, etesync-desktop, tells by it that it's this server answering on the port)
-    server_version = "EteSyncDesktop"
+    # (the launcher, ciphwren-desktop, tells by it that it's this server answering on the port)
+    server_version = "CiphwrenDesktop"
     # Set by main()
     reminders = None
     open_links = False
@@ -245,7 +245,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     # Whether the request comes from the app: it's for this server's own name, and has the header (a
     # page of another site can't send it without asking first, which this server doesn't allow)
     def from_app(self, request):
-        return (self.headers.get("Host", "").lower() in self.allowed_hosts) and (self.headers.get("X-EteSync-Request") == request)
+        return (self.headers.get("Host", "").lower() in self.allowed_hosts) and (self.headers.get("X-Ciphwren-Request") == request)
 
     # The JSON the app sent, or None (after answering with an error)
     def read_json(self):

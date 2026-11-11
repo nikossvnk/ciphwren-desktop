@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds a release of EteSync Desktop: the web build, with the server and the installer, packed as
-# dist/etesync-desktop-VERSION.tar.gz, and its checksum, dist/etesync-desktop-VERSION.tar.gz.sha256.
+# Builds a release of Ciphwren Desktop: the web build, with the server and the installer, packed as
+# dist/ciphwren-desktop-VERSION.tar.gz, and its checksum, dist/ciphwren-desktop-VERSION.tar.gz.sha256.
 # The release workflow (.github/workflows/release.yml) runs it for each tag, and uploads both.
 #
 #   desktop/build-release.sh v1.2.0     # the version, e.g. the tag (a leading "v" is left out)
@@ -21,11 +21,11 @@ fi
 
 VERSION="${1:-$(git describe --tags --always --dirty)}"
 VERSION="${VERSION#v}"
-NAME="etesync-desktop-$VERSION"
+NAME="ciphwren-desktop-$VERSION"
 DIST="$ROOT/dist"
 STAGE="$DIST/$NAME"
 COMMIT="$(git rev-parse HEAD)"
-SOURCE="https://github.com/nikossvnk/etesync-aio/tree/$COMMIT"
+SOURCE="https://github.com/nikossvnk/ciphwren-desktop/tree/$COMMIT"
 
 echo "Building $NAME (at $(git log -1 --format='%h %s'))"
 rm -rf "$STAGE" "$DIST/$NAME.tar.gz" "$DIST/$NAME.tar.gz.sha256"
@@ -33,19 +33,19 @@ mkdir -p "$STAGE"
 npx expo export --platform web --output-dir "$STAGE/site" > "$DIST/build.log" 2>&1 ||
     { echo "The build failed, see $DIST/build.log" >&2; exit 1; }
 
-cp desktop/serve.py desktop/install.sh desktop/etesync-desktop "$STAGE/"
+cp desktop/serve.py desktop/install.sh desktop/ciphwren-desktop "$STAGE/"
 cp assets/icon.png "$STAGE/icon.png"
 cp -r LICENSES "$STAGE/LICENSES"
 echo "$VERSION" > "$STAGE/VERSION"
 # (the app reads it from there, for its About page, see src/appVersion.ts)
 echo "$VERSION" > "$STAGE/site/version.txt"
 cat > "$STAGE/README.txt" <<README
-EteSync Desktop $VERSION
+Ciphwren Desktop $VERSION
 
 Notes, bookmarks, calendar, tasks and contacts on EteSync, end-to-end encrypted, as a web app
 that runs on this computer only (http://localhost:8092).
 
-To try it without installing anything, run ./etesync-desktop in this directory.
+To try it without installing anything, run ./ciphwren-desktop in this directory.
 
 To install it (an entry in the applications menu, and with systemd a service that starts it when
 you log in), or to update an installed one, run ./install.sh. ./install.sh --uninstall removes it

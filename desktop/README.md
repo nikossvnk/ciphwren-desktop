@@ -1,4 +1,4 @@
-# EteSync Desktop: installing it on a computer
+# Ciphwren Desktop: installing it on a computer
 
 Runs the web version of the app on your own computer, at `http://localhost:8092`, with an entry in
 the applications menu (and a shortcut on the desktop if you want one). Linux for now.
@@ -14,18 +14,18 @@ Needs Python 3, which most Linux systems have, and a browser (Chromium, Chrome, 
 Firefox). Nothing is built on your computer: a release is the built app (about 2 MB).
 
 ```
-curl -fsSL https://raw.githubusercontent.com/nikossvnk/etesync-aio/main/desktop/get.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nikossvnk/ciphwren-desktop/main/desktop/get.sh | sh
 ```
 
 It downloads the latest release from the repository's GitHub releases, checks its checksum, and
 installs it. Running it again updates it (it says so when the latest version is installed already).
-Then open "EteSync Desktop" from the applications menu, and log in with the server
+Then open "Ciphwren Desktop" from the applications menu, and log in with the server
 URL (under "Advanced settings"), e.g. `https://etebase.example.com`.
 
-Or by hand: download `etesync-desktop-VERSION.tar.gz` from the releases, unpack it, and:
+Or by hand: download `ciphwren-desktop-VERSION.tar.gz` from the releases, unpack it, and:
 
-- `./etesync-desktop` runs it without installing anything (it starts the server, which keeps running
-  in the background until `./etesync-desktop --stop`, and opens the window), or
+- `./ciphwren-desktop` runs it without installing anything (it starts the server, which keeps running
+  in the background until `./ciphwren-desktop --stop`, and opens the window), or
 - `./install.sh` installs it.
 
 Options of `install.sh` (environment variables, also passed on by `get.sh`, e.g.
@@ -38,14 +38,14 @@ Options of `install.sh` (environment variables, also passed on by `get.sh`, e.g.
 | `BROWSER` | the first one found of Chromium, Chrome, Brave, Edge, Firefox | The browser the shortcut opens. Chromium-based browsers open it in an app window, Firefox in a new window |
 | `LOW_MEMORY` | `1` | Chromium-based browsers get flags that make them use a bit less memory (no spare page process, at most two, no background downloads, updates or sync); `0` leaves them out |
 | `PROFILE` | `own` | `own`: the window opens in a browser profile of its own (see below), and links open in your default browser. `shared`: in the browser's usual profile, with its extensions, and links open in that browser. Changing it means logging in again |
-| `DESKTOP_ICON` | `no` | `yes`: also a shortcut on the desktop. It can be added or removed later too, without installing again: `~/.local/share/etesync-desktop/install.sh --desktop-icon` (or `--no-desktop-icon`) |
+| `DESKTOP_ICON` | `no` | `yes`: also a shortcut on the desktop. It can be added or removed later too, without installing again: `~/.local/share/ciphwren-desktop/install.sh --desktop-icon` (or `--no-desktop-icon`) |
 
 `get.sh` also has `VERSION` (a given version instead of the latest) and `FORCE=1` (install it even
 when that version is installed already).
 
 The checksum is only checked against the one in the same release, so it finds broken downloads,
 not a changed release. That a release was built from this repository by its release workflow can be
-checked with GitHub's attestation: `gh attestation verify etesync-desktop-VERSION.tar.gz --repo nikossvnk/etesync-aio`.
+checked with GitHub's attestation: `gh attestation verify ciphwren-desktop-VERSION.tar.gz --repo nikossvnk/ciphwren-desktop`.
 
 ## What's installed
 
@@ -53,30 +53,31 @@ Everything is in your home directory, nothing needs root:
 
 | What | Where |
 |---|---|
-| The app, the server (`serve.py`, on 127.0.0.1 only), the launcher (`etesync-desktop`) and the settings | `~/.local/share/etesync-desktop/` |
-| The window's browser profile, with `PROFILE=own` (the login and the synced data) | `~/.local/share/etesync-desktop/profile/` (Firefox: `profile-firefox/`) |
-| The service, with `SERVICE=yes` | `~/.config/systemd/user/etesync-desktop.service` |
-| The menu entry, which runs the launcher | `~/.local/share/applications/etesync-desktop.desktop` |
-| The desktop shortcut, with `DESKTOP_ICON=yes` | `~/Desktop/etesync-desktop.desktop` |
+| The app, the server (`serve.py`, on 127.0.0.1 only), the launcher (`ciphwren-desktop`) and the settings | `~/.local/share/ciphwren-desktop/` |
+| The window's browser profile, with `PROFILE=own` (the login and the synced data) | `~/.local/share/ciphwren-desktop/profile/` (Firefox: `profile-firefox/`) |
+| The service, with `SERVICE=yes` | `~/.config/systemd/user/ciphwren-desktop.service` |
+| The menu entry, which runs the launcher | `~/.local/share/applications/ciphwren-desktop.desktop` |
+| The desktop shortcut, with `DESKTOP_ICON=yes` | `~/Desktop/ciphwren-desktop.desktop` |
 
-Versions before 0.1.11 were installed as `etesync-aio-web` (the folder, the service and the
-shortcuts). Installing 0.1.11 or later moves such an install to the names above, with its settings
+Before the app was renamed to Ciphwren Desktop it was installed as `etesync-desktop`, and before
+0.1.11 as `etesync-aio-web` (the folder, the service and the shortcuts). Installing a newer
+version moves such an install to the names above, with its settings
 and the window's profile (so the login stays), and removes the old service and shortcuts. Close the
 app's window first: while it's open, the installer stops and asks for that.
 
 The launcher opens the window, and starts the server first when it isn't running (with the service,
-it always is). `etesync-desktop --stop` stops a server it started, `--status` says whether it runs.
+it always is). `ciphwren-desktop --stop` stops a server it started, `--status` says whether it runs.
 
 ## Making a release
 
 Pushing a tag `vVERSION` (e.g. `git tag v1.2.0 && git push origin v1.2.0`) makes the release
 workflow (`.github/workflows/release.yml`) build it and put it on that tag's GitHub release:
-`etesync-desktop-VERSION.tar.gz`, its `.sha256`, and the attestation. `get.sh` installs the latest
+`ciphwren-desktop-VERSION.tar.gz`, its `.sha256`, and the attestation. `get.sh` installs the latest
 one.
 
 To build one here: `desktop/build-release.sh v1.2.0` (after `npm ci`), which writes them to `dist/`.
 It only builds committed changes (`ALLOW_DIRTY=1` to try it out with others). An unpacked release
-has the web build (`site/`), `serve.py`, `etesync-desktop`, `install.sh`, the icon, `VERSION`, a
+has the web build (`site/`), `serve.py`, `ciphwren-desktop`, `install.sh`, the icon, `VERSION`, a
 `README.txt` with the commit it was made from, and the licences.
 
 ## The window's own browser profile
@@ -140,7 +141,7 @@ sync what was changed, then log out there to remove them.
 ## Removing it
 
 ```
-~/.local/share/etesync-desktop/install.sh --uninstall
+~/.local/share/ciphwren-desktop/install.sh --uninstall
 ```
 
 It removes the service, the server, the app, the window's own profile (with the login and the synced

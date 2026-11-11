@@ -4,7 +4,7 @@
 import { Platform } from "react-native";
 
 export const appName = "EteSync";
-export const sourceCode = "https://github.com/nikossvnk/etesync-aio";
+export const sourceCode = "https://github.com/nikossvnk/ciphwren-desktop";
 export const reportIssue = sourceCode + "/issues";
 
 // In generic mode we don't have anything specific to EteSync's hosted service (app store guidelines)

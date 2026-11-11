@@ -58,8 +58,8 @@ function request(port, method, where, body, headers) {
     req.end(data);
   });
 }
-const post = (port, body, headers = {}) => request(port, "POST", "/reminders", body, { "X-EteSync-Request": "reminders", ...headers });
-const openLink = (port, body, headers = {}) => request(port, "POST", "/open-link", body, { "X-EteSync-Request": "open", ...headers });
+const post = (port, body, headers = {}) => request(port, "POST", "/reminders", body, { "X-Ciphwren-Request": "reminders", ...headers });
+const openLink = (port, body, headers = {}) => request(port, "POST", "/open-link", body, { "X-Ciphwren-Request": "open", ...headers });
 
 test("the server shows the reminders the app hands it when they're due, once", async (t) => {
   const dir = setup();
@@ -78,7 +78,7 @@ test("the server shows the reminders the app hands it when they're due, once", a
     { key: "cal/c/1", at: Date.now() - 2 * 3600 * 1000, title: "Long ago", body: "" },
   ];
   // Only from the app: with its header, for its own host name, and as JSON
-  assert.equal((await post(port, { reminders }, { "X-EteSync-Request": "" })).status, 403);
+  assert.equal((await post(port, { reminders }, { "X-Ciphwren-Request": "" })).status, 403);
   assert.equal((await post(port, { reminders }, { Host: "attacker.example.com" })).status, 403);
   assert.equal((await post(port, { reminders }, { "Content-Type": "text/plain" })).status, 403);
   await sleep(1200);
@@ -87,7 +87,7 @@ test("the server shows the reminders the app hands it when they're due, once", a
   assert.equal((await post(port, { reminders })).status, 204);
   await sleep(1200);
   const icon = path.join(path.dirname(serve), "icon.png");
-  assert.deepEqual(shown(dir), [["--app-name=EteSync Desktop", ...(fs.existsSync(icon) ? [`--icon=${icon}`] : []), "--", "Dentist",
+  assert.deepEqual(shown(dir), [["--app-name=Ciphwren Desktop", ...(fs.existsSync(icon) ? [`--icon=${icon}`] : []), "--", "Dentist",
     "Friday 23 October, 09:00–10:00 · &lt;b&gt;Room&lt;/b&gt; &amp; 3"]]);
   assert.equal(fs.statSync(path.join(dir, "reminders.json")).mode & 0o777, 0o600);
 
@@ -114,18 +114,18 @@ test("with --open-links, the server opens the app's web, email and phone links i
   });
 
   // Without it, there's no such thing (so the app opens links itself)
-  assert.equal((await request(port, "GET", "/open-link", undefined, { "X-EteSync-Request": "open" })).status, 404);
+  assert.equal((await request(port, "GET", "/open-link", undefined, { "X-Ciphwren-Request": "open" })).status, 404);
   assert.equal((await openLink(port, { url: "https://example.com/" })).status, 404);
   server.kill();
   await sleep(300);
   server = await start(dir, port, ["--open-links"]);
 
-  const asked = await request(port, "GET", "/open-link", undefined, { "X-EteSync-Request": "open" });
+  const asked = await request(port, "GET", "/open-link", undefined, { "X-Ciphwren-Request": "open" });
   assert.equal(asked.status, 200);
   assert.deepEqual(JSON.parse(asked.body), { enabled: true });
   // Only from the app: with its header, for its own host name, and as JSON
   assert.equal((await request(port, "GET", "/open-link", undefined, {})).status, 403);
-  assert.equal((await openLink(port, { url: "https://example.com/a" }, { "X-EteSync-Request": "" })).status, 403);
+  assert.equal((await openLink(port, { url: "https://example.com/a" }, { "X-Ciphwren-Request": "" })).status, 403);
   assert.equal((await openLink(port, { url: "https://example.com/b" }, { Host: "attacker.example.com" })).status, 403);
   assert.equal((await openLink(port, { url: "https://example.com/c" }, { "Content-Type": "text/plain" })).status, 403);
   // Only web, email and phone links, which can't be taken as options or files
