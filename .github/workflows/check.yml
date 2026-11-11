@@ -75,8 +75,8 @@ jobs:
       # Built from our own copy of the Etebase server, not from EteSync's images
       - name: Start an Etebase test server
         run: |
-          docker build -t etebase-test-server -f docker/test-server/Dockerfile --build-arg ETESYNC_VERSION=master \
-            https://github.com/nikossvnk/etesync-server.git#master
+          docker build -t etebase-test-server -f docker/test-server/Dockerfile --build-arg CIPHWREN_VERSION=master \
+            https://github.com/nikossvnk/ciphwren-server.git#master
           docker run -d --name etebase-test -p 127.0.0.1:3735:3735 etebase-test-server
 
       - run: npm ci --no-audit --no-fund
