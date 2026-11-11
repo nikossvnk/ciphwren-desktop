@@ -37,7 +37,7 @@ http.createServer(async (req, res) => {
     for await (const chunk of req) {
       chunks.push(chunk);
     }
-    if ((req.method !== "POST") || (req.headers["x-etesync-request"] !== "reminders")) {
+    if ((req.method !== "POST") || (req.headers["x-ciphwren-request"] !== "reminders")) {
       res.writeHead(403).end();
       return;
     }
@@ -52,7 +52,7 @@ http.createServer(async (req, res) => {
     }
     if (!openLinks) {
       res.writeHead(404).end();
-    } else if (req.headers["x-etesync-request"] !== "open") {
+    } else if (req.headers["x-ciphwren-request"] !== "open") {
       res.writeHead(403).end();
     } else if (req.method === "GET") {
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ enabled: true }));
@@ -73,7 +73,7 @@ http.createServer(async (req, res) => {
   }
   if (req.url.startsWith("/bookmark-title?")) {
     const url = new URL(req.url, "http://localhost").searchParams.get("url") || "";
-    if ((req.headers["x-etesync-request"] !== "title") || !/^https?:/i.test(url)) {
+    if ((req.headers["x-ciphwren-request"] !== "title") || !/^https?:/i.test(url)) {
       res.writeHead(403).end();
       return;
     }

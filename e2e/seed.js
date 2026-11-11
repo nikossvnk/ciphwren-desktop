@@ -12,18 +12,18 @@ const day = (offset) => { const d = new Date(); d.setUTCHours(0, 0, 0, 0); d.set
 const date = (d) => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
 const at = (offset, hour, minute = 0) => `${date(day(offset))}T${pad(hour)}${pad(minute)}00Z`;
 const stamp = `DTSTAMP:${at(0, 0)}`;
-const calendar = (lines) => ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//etesync-aio seed", ...lines, "END:VCALENDAR", ""].join("\r\n");
+const calendar = (lines) => ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ciphwren-desktop seed", ...lines, "END:VCALENDAR", ""].join("\r\n");
 
 const notes = {
   "Personal": [
-    ["Welcome", "# Welcome\n\nThis is **sample data** to try the app with.\n\n- Notes are _Markdown_\n- [ ] Tick this task\n- [x] Already done\n\n> Quotes, `code` and [links](https://github.com/nikossvnk/etesync-aio) work too.", true],
+    ["Welcome", "# Welcome\n\nThis is **sample data** to try the app with.\n\n- Notes are _Markdown_\n- [ ] Tick this task\n- [x] Already done\n\n> Quotes, `code` and [links](https://example.com) work too.", true],
     ["Groceries", "- [ ] Milk\n- [ ] Bread\n- [x] Coffee\n- [ ] Apples\n- [ ] Olive oil"],
     ["Books to read", "1. The Left Hand of Darkness\n2. Piranesi\n3. A Psalm for the Wild-Built\n\n~~Dune~~ (read it)"],
     ["Trip ideas", "## Summer\n\n- Crete, the south coast\n- Hiking in the Dolomites\n\n## Weekend\n\n- Spreewald by canoe"],
   ],
   "Work": [
     ["Meeting notes", "## Weekly sync\n\n**Decisions**\n\n- Release on Friday\n- Move the planning to Monday\n\n**Follow-ups**\n\n- [ ] Send the summary\n- [ ] Update the roadmap", true],
-    ["Snippets", "Restart the service:\n\n```\nsystemctl --user restart etesync-desktop\n```\n\nCheck its status with `--status`."],
+    ["Snippets", "Restart the service:\n\n```\nsystemctl --user restart ciphwren-desktop\n```\n\nCheck its status with `--status`."],
     ["Project plan", "| Phase | When | Who |\n|---|---|---|\n| Design | March | Ana |\n| Build | April | Ben |\n| Launch | May | All |"],
   ],
 };
@@ -59,7 +59,7 @@ const contacts = [
 
 const bookmarks = [
   ["EteSync", "https://www.etesync.com/", "End-to-end encrypted sync", ["sync", "privacy"]],
-  ["etesync-aio on GitHub", "https://github.com/nikossvnk/etesync-aio", "This app", ["dev"]],
+  ["Example bookmark", "https://example.com", "A sample link", ["dev"]],
   ["MDN Web Docs", "https://developer.mozilla.org/", "", ["dev", "reference"]],
   ["Spreewald", "https://en.wikipedia.org/wiki/Spreewald", "Weekend trip idea", ["travel"]],
   ["Markdown guide", "https://www.markdownguide.org/basic-syntax/", "", ["reference"]],

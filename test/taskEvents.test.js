@@ -28,15 +28,15 @@ test("a task due on a day gets an all day event on that day, linked both ways an
   assert.equal(event.component.getAllSubcomponents("valarm").length, 0);
   assert.equal(linkedTaskUid(event), "task-1");
   assert.equal(linkedEventUid(TaskType.parse(task.toIcal())), event.uid);
-  assert.match(event.toIcal(), /\r\nX-ETESYNC-DESKTOP-TASK:task-1\r\n/);
-  assert.match(task.toIcal(), /\r\nX-ETESYNC-DESKTOP-EVENT:[0-9a-f-]{36}\r\n/);
+  assert.match(event.toIcal(), /\r\nX-CIPHWREN-TASK:task-1\r\n/);
+  assert.match(task.toIcal(), /\r\nX-CIPHWREN-EVENT:[0-9a-f-]{36}\r\n/);
   for (const name of ["DTSTAMP", "CREATED", "LAST-MODIFIED"]) {
     assert.match(line(event, name), /^[A-Z-]+:\d{8}T\d{6}Z$/, name);
   }
 
   setLinkedEvent(task, undefined);
   assert.equal(linkedEventUid(task), undefined);
-  assert.doesNotMatch(task.toIcal(), /X-ETESYNC/);
+  assert.doesNotMatch(task.toIcal(), /X-CIPHWREN|X-ETESYNC/);
 });
 
 test("a due time gives an hour from then in its time zone, and a floating one is taken as on this device", () => {
@@ -96,4 +96,19 @@ test("only what changed in the task changes the event, so one moved in the calen
   assert.equal(event.description, "Bank transfer");
   applyTaskToEvent(event, later, noted);
   assert.equal(event.component.getFirstProperty("description"), null);
+});
+
+test("links made before the app was renamed are read, and replaced when the items are saved", () => {
+  const task = taskOf("DUE;VALUE=DATE:20261030", "X-ETESYNC-DESKTOP-EVENT:event-1");
+  const event = EventType.parse(ics("BEGIN:VEVENT", "UID:event-1", "SUMMARY:Pay rent", "DTSTART;VALUE=DATE:20261030",
+    "DTEND;VALUE=DATE:20261031", "X-ETESYNC-DESKTOP-TASK:task-1", "END:VEVENT"));
+  assert.equal(linkedEventUid(task), "event-1");
+  assert.equal(linkedTaskUid(event), "task-1");
+
+  setLinkedEvent(task, linkedEventUid(task));
+  assert.equal(applyTaskToEvent(event, task, task), true);
+  assert.match(task.toIcal(), /\r\nX-CIPHWREN-EVENT:event-1\r\n/);
+  assert.match(event.toIcal(), /\r\nX-CIPHWREN-TASK:task-1\r\n/);
+  assert.doesNotMatch(task.toIcal() + event.toIcal(), /X-ETESYNC/);
+  assert.equal(linkedTaskUid(saved(event)), "task-1");
 });

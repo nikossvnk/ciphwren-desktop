@@ -1,6 +1,6 @@
 // An event in the calendar for a task with a due date: "Add to calendar" in the task editor makes an
-// all day event on the due day in the chosen calendar, linked both ways (X-ETESYNC-DESKTOP-EVENT on
-// the task, X-ETESYNC-DESKTOP-TASK on the event). The event follows the task: "✓ " in its title
+// all day event on the due day in the chosen calendar, linked both ways (X-CIPHWREN-EVENT on
+// the task, X-CIPHWREN-TASK on the event). The event follows the task: "✓ " in its title
 // while it's done, its due date, and it's deleted with the task, when the box is unticked, or when
 // the due date is removed. A repeating task's next time gets an event of its own when one is done.
 // The day view's "Tasks due" leaves out the tasks whose event is on the day. Everything is checked
@@ -46,7 +46,7 @@ run(async () => {
   // The event (in any of the two calendars) that's linked to the task with this UID
   const eventOf = async (taskUid) => {
     for (const [name, col] of [["my", myCalendar], ["work", work]]) {
-      const found = (await eventsIn(col)).find((x) => prop(x, "X-ETESYNC-DESKTOP-TASK") === taskUid);
+      const found = (await eventsIn(col)).find((x) => prop(x, "X-CIPHWREN-TASK") === taskUid);
       if (found) {
         return { calendar: name, content: found };
       }
@@ -71,7 +71,7 @@ run(async () => {
   check("the task and its event are linked both ways on the server, the event all day on the due day in the chosen calendar", await waitFor(async () => {
     rent = await task(`Pay rent ${n}`);
     rentEvent = rent && await eventOf(uidOf(rent));
-    return !!rentEvent && (rentEvent.calendar === "work") && (prop(rent, "X-ETESYNC-DESKTOP-EVENT") === uidOf(rentEvent.content)) &&
+    return !!rentEvent && (rentEvent.calendar === "work") && (prop(rent, "X-CIPHWREN-EVENT") === uidOf(rentEvent.content)) &&
       rentEvent.content.includes(`\r\nSUMMARY:Pay rent ${n}\r\n`) && rentEvent.content.includes(`\r\nDTSTART;VALUE=DATE:${icalDate(day(1))}\r\n`) &&
       rentEvent.content.includes(`\r\nDTEND;VALUE=DATE:${icalDate(day(2))}\r\n`) && !rentEvent.content.includes("BEGIN:VALARM");
   }), [rent, rentEvent?.content]);
@@ -123,7 +123,7 @@ run(async () => {
   let bankEvent;
   check("an existing task ticked in the editor gets an event, in the first calendar, and keeps its other app's UID", await waitFor(async () => {
     bankEvent = await eventOf(bankUid);
-    return !!bankEvent && (bankEvent.calendar === "my") && (prop(await task(`Call bank ${n}`), "X-ETESYNC-DESKTOP-EVENT") === uidOf(bankEvent.content));
+    return !!bankEvent && (bankEvent.calendar === "my") && (prop(await task(`Call bank ${n}`), "X-CIPHWREN-EVENT") === uidOf(bankEvent.content));
   }), bankEvent?.content);
 
   // The due date removed: the event is gone, and so is the link
@@ -132,7 +132,7 @@ run(async () => {
   await p.getByText("Clear", { exact: true }).locator("visible=true").first().click(); await wait(300);
   await btn(/^save$/i).click(); await wait(3000);
   check("without a due date the event is deleted, and the task has no link", await waitFor(async () => !(await eventOf(bankUid)) &&
-    !(await eventsIn(myCalendar)).some((x) => x.includes(`SUMMARY:Call bank ${n}`)) && !(await task(`Call bank ${n}`)).includes("X-ETESYNC-DESKTOP-EVENT")));
+    !(await eventsIn(myCalendar)).some((x) => x.includes(`SUMMARY:Call bank ${n}`)) && !(await task(`Call bank ${n}`)).includes("X-CIPHWREN-EVENT")));
 
   // Unticked in the editor: the event is gone, and the link
   await p.getByRole("button", { name: `Task Pay rent ${n}` }).click(); await wait(1500);
@@ -140,7 +140,7 @@ run(async () => {
   await p.getByRole("checkbox", { name: "Add to calendar" }).locator("visible=true").click(); await wait(300);
   await btn(/^save$/i).click(); await wait(3000);
   check("unticked, the event is deleted and the task has no link", await waitFor(async () => !(await eventOf(rentUid)) &&
-    !(await eventsIn(work)).some((x) => x.includes(`Pay rent ${n}`)) && !(await task(`Pay rent ${n}`)).includes("X-ETESYNC-DESKTOP-EVENT")));
+    !(await eventsIn(work)).some((x) => x.includes(`Pay rent ${n}`)) && !(await task(`Pay rent ${n}`)).includes("X-CIPHWREN-EVENT")));
 
   // Ticked again, then the task deleted: its event is deleted too
   await p.getByRole("button", { name: `Task Pay rent ${n}` }).click(); await wait(1500);
@@ -177,7 +177,7 @@ run(async () => {
     const doneEvent = await eventOf(waterUid);
     return !!doneEvent && (prop(doneEvent.content, "SUMMARY") === `✓ Water plants ${n}`) && !!nextEvent && (nextEvent.calendar === "my") &&
       (prop(nextEvent.content, "SUMMARY") === `Water plants ${n}`) && nextEvent.content.includes(`\r\nDTSTART;VALUE=DATE:${icalDate(day(8))}\r\n`) &&
-      (prop(next, "X-ETESYNC-DESKTOP-EVENT") === uidOf(nextEvent.content)) && (uidOf(nextEvent.content) !== uidOf(doneEvent.content));
+      (prop(next, "X-CIPHWREN-EVENT") === uidOf(nextEvent.content)) && (uidOf(nextEvent.content) !== uidOf(doneEvent.content));
   }), [next, nextEvent?.content]);
   check("two events for the two times, no more", (await eventsIn(myCalendar)).filter((x) => x.includes(`Water plants ${n}`)).length === 2);
 

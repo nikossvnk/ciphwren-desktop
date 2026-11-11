@@ -29,7 +29,7 @@ function openWithServer(url: string) {
   fetch("/open-link", {
     method: "POST",
     // (which a page of another site can't send without asking first, so only the app can use it)
-    headers: { "X-EteSync-Request": "open", "Content-Type": "application/json" },
+    headers: { "X-Ciphwren-Request": "open", "Content-Type": "application/json" },
     body: JSON.stringify({ url }),
   }).catch(() => undefined);
 }
@@ -39,7 +39,7 @@ export async function setupExternalLinks() {
     return;
   }
   try {
-    const response = await fetch("/open-link", { headers: { "X-EteSync-Request": "open" } });
+    const response = await fetch("/open-link", { headers: { "X-Ciphwren-Request": "open" } });
     if (!response.ok || ((await response.json()).enabled !== true)) {
       return;
     }

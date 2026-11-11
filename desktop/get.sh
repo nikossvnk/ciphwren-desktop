@@ -1,8 +1,8 @@
 #!/bin/sh
-# Downloads a release of EteSync Desktop (the latest one), checks its checksum, and installs it, or
+# Downloads a release of Ciphwren Desktop (the latest one), checks its checksum, and installs it, or
 # updates the installed one. Nothing is built, it needs Python 3, curl and tar (systemd is optional).
 #
-#   curl -fsSL https://raw.githubusercontent.com/nikossvnk/etesync-aio/main/desktop/get.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/nikossvnk/ciphwren-desktop/main/desktop/get.sh | sh
 #   curl -fsSL .../get.sh | VERSION=1.2.0 sh     # a given version
 #   curl -fsSL .../get.sh | FORCE=1 sh           # install it again even when it's that version already
 #
@@ -14,13 +14,15 @@ set -eu
 # All in a function that's only called at the end, so that nothing runs if the download of this
 # script breaks off
 main() {
-    releases="${RELEASES:-https://github.com/nikossvnk/etesync-aio/releases}"
-    installed_file="${XDG_DATA_HOME:-$HOME/.local/share}/etesync-desktop/VERSION"
-    # (where versions before 0.1.11 were installed)
-    [ -f "$installed_file" ] || installed_file="${XDG_DATA_HOME:-$HOME/.local/share}/etesync-aio-web/VERSION"
+    releases="${RELEASES:-https://github.com/nikossvnk/ciphwren-desktop/releases}"
+    installed_file="${XDG_DATA_HOME:-$HOME/.local/share}/ciphwren-desktop/VERSION"
+    # (where it was installed before the app was renamed, and before 0.1.11)
+    for old_name in etesync-desktop etesync-aio-web; do
+        [ -f "$installed_file" ] || installed_file="${XDG_DATA_HOME:-$HOME/.local/share}/$old_name/VERSION"
+    done
 
     for cmd in curl tar bash python3; do
-        command -v "$cmd" >/dev/null 2>&1 || fail "Missing $cmd, it's needed to install EteSync Desktop"
+        command -v "$cmd" >/dev/null 2>&1 || fail "Missing $cmd, it's needed to install Ciphwren Desktop"
     done
     if command -v sha256sum >/dev/null 2>&1; then
         sha256="sha256sum"
@@ -44,14 +46,14 @@ main() {
     esac
 
     if [ -f "$installed_file" ] && [ "$(cat "$installed_file")" = "$version" ] && [ "${FORCE:-0}" != "1" ]; then
-        echo "EteSync Desktop $version is installed already (FORCE=1 installs it again)"
+        echo "Ciphwren Desktop $version is installed already (FORCE=1 installs it again)"
         exit 0
     fi
 
-    name="etesync-desktop-$version"
+    name="ciphwren-desktop-$version"
     tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' EXIT INT TERM
-    echo "Downloading EteSync Desktop $version"
+    echo "Downloading Ciphwren Desktop $version"
     curl -fsSL -o "$tmp/$name.tar.gz" "$releases/download/v$version/$name.tar.gz" ||
         fail "Couldn't download $name.tar.gz from $releases"
     curl -fsSL -o "$tmp/$name.tar.gz.sha256" "$releases/download/v$version/$name.tar.gz.sha256" ||
@@ -63,7 +65,7 @@ main() {
 
     mkdir "$tmp/unpacked"
     tar -xzf "$tmp/$name.tar.gz" -C "$tmp/unpacked" --no-same-owner
-    [ -f "$tmp/unpacked/$name/install.sh" ] || fail "The download isn't a release of EteSync Desktop"
+    [ -f "$tmp/unpacked/$name/install.sh" ] || fail "The download isn't a release of Ciphwren Desktop"
     bash "$tmp/unpacked/$name/install.sh"
 }
 
