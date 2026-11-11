@@ -151,6 +151,7 @@ const shortcuts: { title: string, items: [string[], string][] }[] = [
   ] },
   { title: "Notes", items: [
     [["Esc"], "Stop editing the note"],
+    [["Ctrl", "A"], "Select the text of the note (in the viewer)"],
     [["Ctrl", "Click"], "Select several notes (Esc selects none)"],
     [["Right click"], "Pin, move or delete the note, or the selected ones"],
   ] },
