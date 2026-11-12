@@ -40,7 +40,7 @@ function send(notices: Notice[]) {
     fetch("/reminders", {
       method: "POST",
       // (which a page of another site can't send without asking first, so only the app can use it)
-      headers: { "Content-Type": "application/json", "X-EteSync-Request": "reminders" },
+      headers: { "Content-Type": "application/json", "X-Ciphwren-Request": "reminders" },
       body,
     }).then((response) => {
       if (!response.ok) {

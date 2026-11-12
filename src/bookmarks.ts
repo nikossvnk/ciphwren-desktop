@@ -359,7 +359,7 @@ export async function fetchTitle(url: string) {
       const response = await fetch(`/bookmark-title?url=${encodeURIComponent(normalizeUrl(url))}`, {
         signal: controller.signal,
         // (which a page of another site can't send without asking first, so only the app can use it)
-        headers: { "X-EteSync-Request": "title" },
+        headers: { "X-Ciphwren-Request": "title" },
       });
       if (!response.ok || !(response.headers.get("Content-Type") ?? "").startsWith("application/json")) {
         return undefined;

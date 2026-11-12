@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
-import { Image, StyleSheet, View, ViewProps } from "react-native";
+import { Image, Platform, StyleSheet, View, ViewInstance, ViewProps } from "react-native";
 import { ActivityIndicator, Checkbox, Text, TouchableRipple } from "react-native-paper";
 import { fonts, Theme, useTheme } from "../../theme";
 import MarkdownDisplay, { MarkdownIt, renderRules, RenderRules } from "react-native-markdown-display";
 import { useSelector } from "react-redux";
-import { fontFamilies, FontFamilyKey, openExternalUrl } from "../../helpers";
+import { useIsFocused } from "@react-navigation/native";
+import { dialogOpen, fontFamilies, FontFamilyKey, openExternalUrl } from "../../helpers";
 import { StoreState } from "../../store";
 import TaskList from "./markdown-it-tasklist";
 import toggleCheckbox from "./toggle-checkbox";
+import { selectionHtml } from "./copyFormatting";
 
 const getStyles = (theme: Theme, fontSize: number, fontFamilyKey: FontFamilyKey) => {
   // The app's font has a face for every weight, the others are made bold
@@ -345,21 +347,70 @@ const Markdown = React.memo(function _Markdown(props: MarkdownPropsType) {
   const theme = useTheme();
   const fontSize = useSelector((state: StoreState) => state.settings.fontSize);
   const fontFamilyKey = useSelector((state: StoreState) => state.settings.viewSettings.viewerFontFamily);
+  const ref = React.useRef<ViewInstance>(null);
+  const focused = useIsFocused();
+
+  // What's copied keeps its formatting, without the theme's colours
+  React.useEffect(() => {
+    const root = ref.current as unknown as HTMLElement | null;
+    if ((Platform.OS !== "web") || !root) {
+      return undefined;
+    }
+    const onCopy = (e: ClipboardEvent) => {
+      const html = selectionHtml(root, fontSize, fontFamilyKey === "monospace");
+      if ((html === undefined) || !e.clipboardData) {
+        return;
+      }
+      e.clipboardData.setData("text/plain", window.getSelection()!.toString());
+      e.clipboardData.setData("text/html", html);
+      e.preventDefault();
+    };
+    // (the event is the document's when the selection isn't in a text field)
+    document.addEventListener("copy", onCopy);
+    return () => document.removeEventListener("copy", onCopy);
+  }, [fontSize, fontFamilyKey]);
+
+  // Ctrl+A (outside of text fields) selects the note's text rather than the whole page, which the
+  // browser would copy with the theme's colours
+  React.useEffect(() => {
+    const root = ref.current as unknown as HTMLElement | null;
+    if ((Platform.OS !== "web") || !root || !focused) {
+      return undefined;
+    }
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // (the key by its place, as other layouts' letters, e.g. Greek, are on the same keys)
+      if ((e.code !== "KeyA") || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey ||
+        (target instanceof HTMLInputElement) || (target instanceof HTMLTextAreaElement) || target?.isContentEditable ||
+        dialogOpen() || document.querySelector('[role="menu"], [aria-modal="true"]')) {
+        return;
+      }
+      e.preventDefault();
+      const range = document.createRange();
+      range.selectNodeContents(root);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [focused]);
 
   return (
-    <MarkdownDisplay
-      markdownit={markdownItInstance}
-      rules={getRules(content, setContent)}
-      style={getStyles(theme, fontSize, fontFamilyKey)}
-      mergeStyle
-      onLinkPress={(url) => {
-        openExternalUrl(url);
-        // (true would make it open the link again, itself, without checking it)
-        return false;
-      }}
-    >
-      {content}
-    </MarkdownDisplay>
+    <View ref={ref}>
+      <MarkdownDisplay
+        markdownit={markdownItInstance}
+        rules={getRules(content, setContent)}
+        style={getStyles(theme, fontSize, fontFamilyKey)}
+        mergeStyle
+        onLinkPress={(url) => {
+          openExternalUrl(url);
+          // (true would make it open the link again, itself, without checking it)
+          return false;
+        }}
+      >
+        {content}
+      </MarkdownDisplay>
+    </View>
   );
 });
 

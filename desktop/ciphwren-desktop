@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Opens EteSync Desktop: starts its server when it isn't running (when it's installed without the
+# Opens Ciphwren Desktop: starts its server when it isn't running (when it's installed without the
 # service, or not installed at all, run from an unpacked release), then opens the app's window.
 #
-#   ./etesync-desktop            # open it
-#   ./etesync-desktop --start    # only start the server
-#   ./etesync-desktop --stop     # stop the server this started (not the service's)
-#   ./etesync-desktop --status   # whether its server runs: "ours", "other" (another program has the port) or "none"
+#   ./ciphwren-desktop            # open it
+#   ./ciphwren-desktop --start    # only start the server
+#   ./ciphwren-desktop --stop     # stop the server this started (not the service's)
+#   ./ciphwren-desktop --status   # whether its server runs: "ours", "other" (another program has the port) or "none"
 #
 # The settings install.sh chose (PORT, BROWSER, LOW_MEMORY, PROFILE) are in the settings file next to this,
 # and can also be given as environment variables. A server this starts keeps running in the
@@ -42,7 +42,7 @@ except urllib.error.HTTPError as e:
 except OSError:
     print("none")
     sys.exit()
-print("ours" if (response.headers.get("Server") or "").startswith("EteSyncDesktop") else "other")
+print("ours" if (response.headers.get("Server") or "").startswith("CiphwrenDesktop") else "other")
 PY
 }
 
@@ -50,10 +50,10 @@ start() {
     case "$(server)" in
         ours) return ;;
         other)
-            echo "Another program uses port $PORT. Install EteSync Desktop on another one, e.g.: PORT=8093 ./install.sh" >&2
+            echo "Another program uses port $PORT. Install Ciphwren Desktop on another one, e.g.: PORT=8093 ./install.sh" >&2
             exit 1 ;;
     esac
-    command -v python3 >/dev/null 2>&1 || { echo "Missing python3, it's needed to run EteSync Desktop" >&2; exit 1; }
+    command -v python3 >/dev/null 2>&1 || { echo "Missing python3, it's needed to run Ciphwren Desktop" >&2; exit 1; }
     # (setsid: in a session of its own, so that it keeps running when the terminal or menu that
     # started this goes away)
     setsid python3 "$HERE/serve.py" --port "$PORT" --dir "$HERE/site" --reminders "$HERE/reminders.json" "${server_options[@]}" >> "$HERE/serve.log" 2>&1 < /dev/null &
@@ -62,15 +62,15 @@ start() {
         [ "$(server)" = "ours" ] && return
         sleep 0.5
     done
-    echo "EteSync Desktop's server didn't start, see $HERE/serve.log" >&2
+    echo "Ciphwren Desktop's server didn't start, see $HERE/serve.log" >&2
     exit 1
 }
 
 stop() {
     if [ -f "$PID_FILE" ] && kill "$(cat "$PID_FILE")" 2>/dev/null; then
-        echo "Stopped EteSync Desktop's server"
+        echo "Stopped Ciphwren Desktop's server"
     elif [ "$(server)" = "ours" ]; then
-        echo "EteSync Desktop runs as a service, stop it with: systemctl --user stop etesync-desktop"
+        echo "Ciphwren Desktop runs as a service, stop it with: systemctl --user stop ciphwren-desktop"
     fi
     rm -f "$PID_FILE"
 }
@@ -113,7 +113,7 @@ make_firefox_profile() {
     mkdir -p "$FIREFOX_PROFILE_DIR"
     chmod 700 "$FIREFOX_PROFILE_DIR"
     cat > "$FIREFOX_PROFILE_DIR/user.js" <<'JS'
-// Written by EteSync Desktop's launcher (etesync-desktop) at every start
+// Written by Ciphwren Desktop's launcher (ciphwren-desktop) at every start
 user_pref("permissions.default.geo", 2);
 user_pref("permissions.default.camera", 2);
 user_pref("permissions.default.microphone", 2);

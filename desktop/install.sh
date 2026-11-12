@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Installs EteSync Desktop from the release this script is in (unpacked from
-# etesync-desktop-VERSION.tar.gz), or updates the installed one to it. get.sh downloads the latest
+# Installs Ciphwren Desktop from the release this script is in (unpacked from
+# ciphwren-desktop-VERSION.tar.gz), or updates the installed one to it. get.sh downloads the latest
 # release and runs this. See README.md in the repository's desktop directory. (To only try it out,
-# without installing anything, run ./etesync-desktop in the unpacked release instead.)
+# without installing anything, run ./ciphwren-desktop in the unpacked release instead.)
 #
 #   ./install.sh                      # install, or update
 #   ./install.sh --uninstall          # remove it again (FORCE=1: without asking)
@@ -16,31 +16,30 @@
 #   DESKTOP_ICON=yes ./install.sh     # also a shortcut on the desktop (default: no, only the menu entry)
 #
 # What it does, all in your home directory (nothing needs root):
-#   1. Copies the app to ~/.local/share/etesync-desktop
+#   1. Copies the app to ~/.local/share/ciphwren-desktop
 #   2. With systemd (SERVICE=yes, the default when there's a systemd user session): serves it on
-#      http://localhost:PORT with a user service, etesync-desktop.service, which starts when you log
+#      http://localhost:PORT with a user service, ciphwren-desktop.service, which starts when you log
 #      in. Without it (SERVICE=no): the shortcut starts the server when it isn't running. Either way
 #      it's only reachable from this computer.
-#   3. Adds "EteSync Desktop" to the applications menu (and with DESKTOP_ICON=yes, a shortcut on the
+#   3. Adds "Ciphwren Desktop" to the applications menu (and with DESKTOP_ICON=yes, a shortcut on the
 #      desktop)
 set -euo pipefail
 
-BASE="${XDG_DATA_HOME:-$HOME/.local/share}/etesync-desktop"
+BASE="${XDG_DATA_HOME:-$HOME/.local/share}/ciphwren-desktop"
 SITE="$BASE/site"
 UNIT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-UNIT="$UNIT_DIR/etesync-desktop.service"
+UNIT="$UNIT_DIR/ciphwren-desktop.service"
 APPS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 DESKTOP_DIR="$(command -v xdg-user-dir >/dev/null 2>&1 && xdg-user-dir DESKTOP || echo "$HOME/Desktop")"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# (the name of installs before 0.1.11)
-OLD_NAME="etesync-aio-web"
-OLD_BASE="${XDG_DATA_HOME:-$HOME/.local/share}/$OLD_NAME"
+# (the names of earlier installs: before the app was renamed, and before 0.1.11)
+OLD_NAMES=(etesync-desktop etesync-aio-web)
 
 step() { printf '\n==> %s\n' "$*"; }
 have_systemd() { command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; }
 write_settings() {
     {
-        echo "# The settings install.sh was run with, used by etesync-desktop and by the next install"
+        echo "# The settings install.sh was run with, used by ciphwren-desktop and by the next install"
         printf 'PORT=%q\nBROWSER=%q\nLOW_MEMORY=%q\nPROFILE=%q\nDESKTOP_ICON=%q\n' \
             "$PORT" "$BROWSER" "$LOW_MEMORY" "$PROFILE" "$DESKTOP_ICON"
     } > "$BASE/settings"
@@ -50,38 +49,47 @@ add_desktop_icon() {
         echo "There's no desktop folder ($DESKTOP_DIR), so no shortcut was put on it" >&2
         return
     fi
-    cp "$APPS_DIR/etesync-desktop.desktop" "$DESKTOP_DIR/etesync-desktop.desktop"
-    chmod +x "$DESKTOP_DIR/etesync-desktop.desktop"
+    cp "$APPS_DIR/ciphwren-desktop.desktop" "$DESKTOP_DIR/ciphwren-desktop.desktop"
+    chmod +x "$DESKTOP_DIR/ciphwren-desktop.desktop"
     # GNOME only starts desktop shortcuts that are marked as trusted
-    command -v gio >/dev/null 2>&1 && gio set "$DESKTOP_DIR/etesync-desktop.desktop" metadata::trusted true 2>/dev/null || true
+    command -v gio >/dev/null 2>&1 && gio set "$DESKTOP_DIR/ciphwren-desktop.desktop" metadata::trusted true 2>/dev/null || true
 }
 remove_service() {
     if [ -f "$UNIT" ]; then
-        systemctl --user disable --now --quiet etesync-desktop.service 2>/dev/null || true
+        systemctl --user disable --now --quiet ciphwren-desktop.service 2>/dev/null || true
         rm -f "$UNIT"
         systemctl --user daemon-reload 2>/dev/null || true
     fi
 }
 
-# An install of a version before 0.1.11, named etesync-aio-web, is moved to the new name, with the
+# An install made before the app was renamed (or before 0.1.11) is moved to the new name, with the
 # window's browser profile (the login, and the changes that aren't synced yet). Not while the window
 # is open, as its browser keeps writing to the profile where it was.
 move_old_install() {
-    { [ -d "$OLD_BASE" ] && [ ! -e "$BASE" ]; } || return 0
-    # (the window's browser is started with the profile's path: Chromium's --user-data-dir, Firefox's --profile)
-    if pgrep -f -- "(--user-data-dir=|--profile )$OLD_BASE/profile" >/dev/null 2>&1; then
-        echo "Close the EteSync Desktop window first (its browser profile is moved to $BASE), then run this again" >&2
-        exit 1
-    fi
-    step "Moving the install from $OLD_BASE to $BASE"
-    if [ -f "$UNIT_DIR/$OLD_NAME.service" ]; then
-        systemctl --user disable --now --quiet "$OLD_NAME.service" 2>/dev/null || true
-        rm -f "$UNIT_DIR/$OLD_NAME.service"
-        systemctl --user daemon-reload 2>/dev/null || true
-    fi
-    [ -x "$OLD_BASE/etesync-desktop" ] && "$OLD_BASE/etesync-desktop" --stop > /dev/null || true
-    mv "$OLD_BASE" "$BASE"
-    rm -f "$APPS_DIR/$OLD_NAME.desktop" "$DESKTOP_DIR/$OLD_NAME.desktop"
+    local old_name old_base
+    [ ! -e "$BASE" ] || return 0
+    for old_name in "${OLD_NAMES[@]}"; do
+        old_base="${XDG_DATA_HOME:-$HOME/.local/share}/$old_name"
+        [ -d "$old_base" ] || continue
+        # (the window's browser is started with the profile's path: Chromium's --user-data-dir, Firefox's --profile)
+        if pgrep -f -- "(--user-data-dir=|--profile )$old_base/profile" >/dev/null 2>&1; then
+            echo "Close the Ciphwren Desktop window first (its browser profile is moved to $BASE), then run this again" >&2
+            exit 1
+        fi
+        step "Moving the install from $old_base to $BASE"
+        if [ -f "$UNIT_DIR/$old_name.service" ]; then
+            systemctl --user disable --now --quiet "$old_name.service" 2>/dev/null || true
+            rm -f "$UNIT_DIR/$old_name.service"
+            systemctl --user daemon-reload 2>/dev/null || true
+        fi
+        # (their launcher was etesync-desktop)
+        [ -x "$old_base/etesync-desktop" ] && "$old_base/etesync-desktop" --stop > /dev/null || true
+        rm -f "$old_base/etesync-desktop" "$old_base/serve.pid"
+        mv "$old_base" "$BASE"
+        rm -f "$APPS_DIR/$old_name.desktop" "$DESKTOP_DIR/$old_name.desktop"
+        command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database --quiet "$APPS_DIR" || true
+        return 0
+    done
 }
 move_old_install
 
@@ -95,10 +103,10 @@ if [ "${1:-}" = "--uninstall" ]; then
             *) echo "Nothing was removed"; exit 1 ;;
         esac
     fi
-    step "Removing EteSync Desktop"
+    step "Removing Ciphwren Desktop"
     remove_service
-    [ -x "$BASE/etesync-desktop" ] && "$BASE/etesync-desktop" --stop > /dev/null || true
-    rm -f "$APPS_DIR/etesync-desktop.desktop" "$DESKTOP_DIR/etesync-desktop.desktop"
+    [ -x "$BASE/ciphwren-desktop" ] && "$BASE/ciphwren-desktop" --stop > /dev/null || true
+    rm -f "$APPS_DIR/ciphwren-desktop.desktop" "$DESKTOP_DIR/ciphwren-desktop.desktop"
     rm -rf "$BASE"
     echo "Removed, with the app window's own browser profile. A browser it was opened in with"
     echo "PROFILE=shared (or by its address) still has the login and the synced data for the app's"
@@ -109,8 +117,8 @@ fi
 case "${1:-}" in
     "") ;;
     --desktop-icon|--no-desktop-icon)
-        if [ ! -f "$BASE/settings" ] || [ ! -f "$APPS_DIR/etesync-desktop.desktop" ]; then
-            echo "EteSync Desktop isn't installed, install it first" >&2
+        if [ ! -f "$BASE/settings" ] || [ ! -f "$APPS_DIR/ciphwren-desktop.desktop" ]; then
+            echo "Ciphwren Desktop isn't installed, install it first" >&2
             exit 1
         fi
         # shellcheck source=/dev/null
@@ -120,7 +128,7 @@ case "${1:-}" in
             add_desktop_icon
         else
             DESKTOP_ICON=no
-            rm -f "$DESKTOP_DIR/etesync-desktop.desktop"
+            rm -f "$DESKTOP_DIR/ciphwren-desktop.desktop"
         fi
         # (kept, so that updates leave it as it is)
         write_settings
@@ -133,7 +141,7 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 if [ ! -f "$HERE/VERSION" ] || [ ! -f "$HERE/site/index.html" ]; then
-    echo "$HERE isn't an unpacked release (etesync-desktop-VERSION.tar.gz), this script has to stay in it" >&2
+    echo "$HERE isn't an unpacked release (ciphwren-desktop-VERSION.tar.gz), this script has to stay in it" >&2
     exit 1
 fi
 VERSION="$(cat "$HERE/VERSION")"
@@ -176,10 +184,10 @@ case "${SERVICE:-auto}" in
     *) echo "SERVICE is yes, no or auto" >&2; exit 1 ;;
 esac
 
-step "Installing EteSync Desktop $VERSION"
+step "Installing Ciphwren Desktop $VERSION"
 mkdir -p "$BASE"
 # A server the launcher started serves the old files, so it's stopped (and started again below)
-[ -x "$BASE/etesync-desktop" ] && "$BASE/etesync-desktop" --stop > /dev/null || true
+[ -x "$BASE/ciphwren-desktop" ] && "$BASE/ciphwren-desktop" --stop > /dev/null || true
 rm -rf "$BASE/site.new" "$BASE/site.old"
 cp -r "$HERE/site" "$BASE/site.new"
 [ -d "$SITE" ] && mv "$SITE" "$BASE/site.old"
@@ -188,16 +196,16 @@ mv "$BASE/site.new" "$SITE"
 rm -rf "$BASE/site.old" "$BASE/build.log" "$BASE/src" "$BASE/__pycache__"
 # (run as the installed install.sh, to change a setting, they're there already)
 if [ "$HERE" != "$BASE" ]; then
-    cp "$HERE/serve.py" "$HERE/etesync-desktop" "$HERE/install.sh" "$HERE/icon.png" "$HERE/VERSION" "$BASE/"
+    cp "$HERE/serve.py" "$HERE/ciphwren-desktop" "$HERE/install.sh" "$HERE/icon.png" "$HERE/VERSION" "$BASE/"
 fi
 write_settings
 
 if [ "$service" = "yes" ]; then
-    step "Installing the service (etesync-desktop.service on $URL)"
+    step "Installing the service (ciphwren-desktop.service on $URL)"
     mkdir -p "$UNIT_DIR"
     cat > "$UNIT" <<UNIT
 [Unit]
-Description=EteSync Desktop, served on $URL (this computer only)
+Description=Ciphwren Desktop, served on $URL (this computer only)
 
 [Service]
 ExecStart=$(command -v python3) $BASE/serve.py --port $PORT --dir $SITE --reminders $BASE/reminders.json$open_links
@@ -207,29 +215,29 @@ Restart=on-failure
 WantedBy=default.target
 UNIT
     systemctl --user daemon-reload
-    systemctl --user enable --quiet etesync-desktop.service
-    systemctl --user restart etesync-desktop.service
+    systemctl --user enable --quiet ciphwren-desktop.service
+    systemctl --user restart ciphwren-desktop.service
     for _ in $(seq 1 20); do
-        [ "$("$BASE/etesync-desktop" --status)" = "ours" ] && break
+        [ "$("$BASE/ciphwren-desktop" --status)" = "ours" ] && break
         sleep 0.5
     done
-    [ "$("$BASE/etesync-desktop" --status)" = "ours" ] ||
-        { echo "The service doesn't answer on $URL, see: journalctl --user -u etesync-desktop" >&2; exit 1; }
+    [ "$("$BASE/ciphwren-desktop" --status)" = "ours" ] ||
+        { echo "The service doesn't answer on $URL, see: journalctl --user -u ciphwren-desktop" >&2; exit 1; }
 else
     step "Starting the server on $URL (without a service, the shortcut starts it)"
     remove_service
-    "$BASE/etesync-desktop" --start
+    "$BASE/ciphwren-desktop" --start
 fi
 
 step "Adding the shortcut"
 mkdir -p "$APPS_DIR"
-desktop_file="$APPS_DIR/etesync-desktop.desktop"
+desktop_file="$APPS_DIR/ciphwren-desktop.desktop"
 cat > "$desktop_file" <<DESKTOP
 [Desktop Entry]
 Type=Application
-Name=EteSync Desktop
+Name=Ciphwren Desktop
 Comment=End-to-end encrypted notes, bookmarks, calendar, tasks and contacts (runs on this computer, $URL)
-Exec="$BASE/etesync-desktop"
+Exec="$BASE/ciphwren-desktop"
 Icon=$BASE/icon.png
 Categories=Office;Calendar;ContactManagement;
 StartupNotify=true
@@ -239,12 +247,12 @@ command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database --
 if [ "$DESKTOP_ICON" = "yes" ]; then
     add_desktop_icon
 else
-    rm -f "$DESKTOP_DIR/etesync-desktop.desktop"
+    rm -f "$DESKTOP_DIR/ciphwren-desktop.desktop"
 fi
 
 step "Done"
-echo "EteSync Desktop $VERSION runs on $URL. Open it from the applications menu, or with"
-echo "$BASE/etesync-desktop. An open window shows the new version after reloading it."
+echo "Ciphwren Desktop $VERSION runs on $URL. Open it from the applications menu, or with"
+echo "$BASE/ciphwren-desktop. An open window shows the new version after reloading it."
 if [ "$DESKTOP_ICON" = "no" ]; then
     echo "To have a shortcut on the desktop too: $BASE/install.sh --desktop-icon"
 fi
@@ -257,6 +265,6 @@ if [ "$installed" = "yes" ] && [ -z "$had_profile" ] && [ "$PROFILE" = "own" ]; 
     echo "To keep the old way: PROFILE=shared $BASE/install.sh"
 fi
 if [ "$service" = "no" ]; then
-    echo "Without the service, the server keeps running in the background ($BASE/etesync-desktop --stop stops it)."
+    echo "Without the service, the server keeps running in the background ($BASE/ciphwren-desktop --stop stops it)."
 fi
 echo "To update it later, run the installer again (see get.sh). To remove it: $BASE/install.sh --uninstall"
