@@ -1,6 +1,6 @@
 # Browser tests
 
-These tests use the web build of EteSync Notes in a headless Chromium, against an Etebase test
+These tests use the web build of Ciphwren Desktop in a headless Chromium, against an Etebase test
 server, the way a person would: logging in, writing notes offline, two devices changing the same
 note, notebooks, navigation, and so on. Every check prints `ok` or `FAIL`, and a test fails when any
 of its checks does.

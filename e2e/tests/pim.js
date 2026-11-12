@@ -139,6 +139,9 @@ run(async () => {
     c.includes(`SUMMARY:Dentist ${n}`) && new RegExp(`DTSTART[^:]*:${icalDate(today)}T140000`).test(c) &&
     new RegExp(`DTEND[^:]*:${icalDate(today)}T151500`).test(c) && c.includes("LOCATION:Main street 1")
   )))));
+  check("saved as made by Ciphwren Desktop", await waitForServer(etebase, (s) => s.some((x) => (x.type === types.calendar) && x.contents.some((c) => (
+    c.includes(`SUMMARY:Dentist ${n}`) && c.includes("\r\nPRODID:-//Ciphwren//Ciphwren Desktop//EN\r\n") && !/etesync/i.test(c)
+  )))), serverDetail(types.calendar)());
 
   // Changing it
   await p.getByRole("button", { name: `Event Dentist ${n}` }).locator("visible=true").first().click(); await wait(2000);

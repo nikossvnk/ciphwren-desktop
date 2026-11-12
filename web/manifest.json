@@ -1,24 +1,12 @@
 {
   "background_color": "#424242",
-  "description": "Secure, end-to-end encrypted, and privacy respecting notes application.",
+  "description": "Notes, bookmarks, calendar, tasks and contacts on an Etebase server, end-to-end encrypted.",
   "display": "standalone",
   "lang": "en",
-  "name": "EteSync Notes",
-  "short_name": "EteSync Notes",
+  "name": "Ciphwren Desktop",
+  "short_name": "Ciphwren Desktop",
   "start_url": "/?utm_source=web_app_manifest",
   "theme_color": "#ffc108",
-  "related_applications": [
-    {
-      "platform": "itunes",
-      "id": "com.etesync.notes"
-    },
-    {
-      "platform": "play",
-      "url": "http://play.google.com/store/apps/details?id=com.etesync.notes",
-      "id": "com.etesync.notes"
-    }
-  ],
-  "prefer_related_applications": true,
   "icons": [
     {
       "src": "/pwa/chrome-icon/chrome-icon-144.png",

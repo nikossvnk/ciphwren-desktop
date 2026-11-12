@@ -15,6 +15,9 @@ run(async () => {
   await p.goto(config.appUrl + "/"); await wait(4000);
   check("the login has its own bar with the help links, and no menu", (await p.getByRole("link", { name: "Source code" }).count() === 1) &&
     (await p.getByRole("link", { name: "Report an issue" }).count() === 1) && (await btn(/^main menu$/i).count() === 0));
+  check("the login shows the app's name, Ciphwren Desktop", await has("Ciphwren Desktop") && !(await has("EteSync")), (await p.innerText("body")).slice(0, 200));
+  const html = await (await fetch(config.appUrl + "/")).text();
+  check("and so does the page's title, before a screen sets its own", html.includes("<title>Ciphwren Desktop</title>"), html.match(/<title>.*?<\/title>/)?.[0]);
   check("it has no server of its own: one has to be set", await has("No server set") && !(await has("Default")));
   await btn(/^log in$/i).click(); await wait(800);
   check("empty fields are required, the server too", ((await p.innerText("body")).match(/This field is required/g) ?? []).length === 3);

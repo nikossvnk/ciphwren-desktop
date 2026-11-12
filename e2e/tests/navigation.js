@@ -54,6 +54,7 @@ run(async () => {
   await back(); await at("back: home", "/", false);
 
   await A.p.goto(config.appUrl + "/settings/about"); await A.wait(6000); await at("About loaded directly", "/settings/about", true);
+  check("About names the app Ciphwren Desktop", /Ciphwren Desktop \S/.test(await A.text()) && !(await A.text()).includes("EteSync"), (await A.text()).slice(0, 200));
   await back(); await at("back: Settings", "/settings", true);
   await back(); await at("back: home", "/", false);
 
