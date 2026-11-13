@@ -116,7 +116,7 @@ function readCalendar(file: ImportFile, parsed: Parsed) {
         }
         // A calendar of its own, with the time zones its times are in
         const item = new ICAL.Component(["vcalendar", [], []]);
-        item.updatePropertyWithValue("prodid", calendar.getFirstPropertyValue("prodid") ?? "-//EteSync//EteSync all-in-one//EN");
+        item.updatePropertyWithValue("prodid", calendar.getFirstPropertyValue("prodid") ?? "-//Ciphwren//Ciphwren Desktop//EN");
         item.updatePropertyWithValue("version", "2.0");
         const text = comps.map((x) => x.toString()).join("\n");
         for (const zone of zones) {

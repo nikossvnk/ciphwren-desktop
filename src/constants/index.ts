@@ -3,7 +3,7 @@
 
 import { Platform } from "react-native";
 
-export const appName = "EteSync";
+export const appName = "Ciphwren Desktop";
 export const sourceCode = "https://github.com/nikossvnk/ciphwren-desktop";
 export const reportIssue = sourceCode + "/issues";
 

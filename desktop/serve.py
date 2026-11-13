@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serves the web build of EteSync (all-in-one) on this computer only (127.0.0.1).
+"""Serves the web build of Ciphwren Desktop on this computer only (127.0.0.1).
 
 Paths that aren't files are answered with index.html, so that the app's own URLs (e.g. /settings)
 also work when they are loaded directly. /bookmark-title reads the title of a web page for the
@@ -62,7 +62,7 @@ def page_title(url):
     """The title of a web page (its og:title, or else its <title>), or None."""
     request = urllib.request.Request(url, headers={
         # (some sites refuse requests that don't say what they are)
-        "User-Agent": "Mozilla/5.0 (compatible; EteSync bookmarks)",
+        "User-Agent": "Mozilla/5.0 (compatible; Ciphwren Desktop bookmarks)",
         "Accept": "text/html,application/xhtml+xml",
     })
     with opener.open(request, timeout=10) as response:

@@ -7,7 +7,7 @@ import moment from "moment";
 import * as uuid from "uuid";
 import { vtimezoneOf } from "./timezones";
 
-const PRODID = "-//iCal.js EteSync iOS";
+const PRODID = "-//Ciphwren//Ciphwren Desktop//EN";
 
 // The time now, in UTC, as LAST-MODIFIED, CREATED and COMPLETED have to be (RFC 5545; ICAL.Time.now()
 // is the time on this device's clock, without a time zone)

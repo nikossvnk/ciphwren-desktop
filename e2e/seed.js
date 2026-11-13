@@ -58,7 +58,7 @@ const contacts = [
 ];
 
 const bookmarks = [
-  ["EteSync", "https://www.etesync.com/", "End-to-end encrypted sync", ["sync", "privacy"]],
+  ["End-to-end encryption", "https://en.wikipedia.org/wiki/End-to-end_encryption", "How the sync is encrypted", ["sync", "privacy"]],
   ["Example bookmark", "https://example.com", "A sample link", ["dev"]],
   ["MDN Web Docs", "https://developer.mozilla.org/", "", ["dev", "reference"]],
   ["Spreewald", "https://en.wikipedia.org/wiki/Spreewald", "Weekend trip idea", ["travel"]],

@@ -372,7 +372,7 @@ export async function fetchTitle(url: string) {
       credentials: "omit",
       // Some sites refuse the default "okhttp" (e.g. Wikipedia), and also a browser's that the request
       // doesn't otherwise look like, so it says what it is, as they ask for
-      headers: { "User-Agent": `EteSync (+${C.sourceCode})` },
+      headers: { "User-Agent": `Ciphwren Desktop (+${C.sourceCode})` },
     });
     if (!response.ok) {
       return undefined;
