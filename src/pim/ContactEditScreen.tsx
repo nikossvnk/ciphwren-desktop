@@ -115,7 +115,7 @@ export default function ContactEditScreen(props: PropsType) {
       contact.uid = uuid.v4();
     }
     const comp = contact.comp;
-    comp.updatePropertyWithValue("prodid", "-//iCal.js EteSync Web");
+    comp.updatePropertyWithValue("prodid", "-//Ciphwren//Ciphwren Desktop//EN");
     comp.updatePropertyWithValue("rev", utcNow());
     if (name.trim() !== existing?.fn) {
       comp.updatePropertyWithValue("fn", name.trim());

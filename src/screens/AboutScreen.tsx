@@ -48,7 +48,7 @@ export default function AboutScreen() {
       style={{ backgroundColor: theme.colors.surface }}
       ListHeaderComponent={() => (
         <Container>
-          <Title style={{ textAlign: "center" }}>{C.appName} Desktop {version}</Title>
+          <Title style={{ textAlign: "center" }}>{C.appName} {version}</Title>
           <Link
             to={C.sourceCode}
             external

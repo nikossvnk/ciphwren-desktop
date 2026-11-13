@@ -53,10 +53,10 @@ test("a contact's fields, with the types of their phone numbers", () => {
 });
 
 test("a bookmark's fields are in its meta", () => {
-  assert.deepEqual(bookmarkFields({ name: "Etebase", url: "https://www.etebase.com/", mtime: 1, description: "The server", tags: ["sync"] }), [
-    { label: "Title", value: "Etebase" },
-    { label: "Link", value: "https://www.etebase.com/" },
-    { label: "Note", value: "The server" },
+  assert.deepEqual(bookmarkFields({ name: "Example", url: "https://example.org/", mtime: 1, description: "A note", tags: ["sync"] }), [
+    { label: "Title", value: "Example" },
+    { label: "Link", value: "https://example.org/" },
+    { label: "Note", value: "A note" },
     { label: "Tags", list: ["sync"] },
   ]);
   assert.deepEqual(bookmarkFields({ url: "https://example.com/" }).map((x) => x.label), ["Title", "Link"]);

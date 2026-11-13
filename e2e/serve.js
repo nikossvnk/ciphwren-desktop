@@ -13,7 +13,7 @@ const csp = fs.readFileSync(path.join(__dirname, "..", "desktop", "serve.py"), "
 const types = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".ico": "image/x-icon", ".ttf": "font/ttf", ".svg": "image/svg+xml" };
 // The title of a web page (its og:title, or else its <title>), as desktop/serve.py reads it
 async function pageTitle(url) {
-  const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; EteSync bookmarks)" }, signal: AbortSignal.timeout(10000) });
+  const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Ciphwren Desktop bookmarks)" }, signal: AbortSignal.timeout(10000) });
   const text = (await response.text()).slice(0, 300000);
   const m = /<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i.exec(text) || /<title[^>]*>([^<]*)<\/title>/i.exec(text);
   const entities = { amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", "#39": "'" };

@@ -136,7 +136,7 @@ export async function exportCollection(etebase: Etebase.Account, colUid: string)
   } else {
     // One calendar with all of the events (or tasks) and the time zones they use
     const calendar = new ICAL.Component(["vcalendar", [], []]);
-    calendar.updatePropertyWithValue("prodid", "-//EteSync//EteSync all-in-one//EN");
+    calendar.updatePropertyWithValue("prodid", "-//Ciphwren//Ciphwren Desktop//EN");
     calendar.updatePropertyWithValue("version", "2.0");
     const zones = new Set<string>();
     for (const content of contents) {

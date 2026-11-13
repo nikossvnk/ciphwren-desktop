@@ -42,7 +42,7 @@ echo "$VERSION" > "$STAGE/site/version.txt"
 cat > "$STAGE/README.txt" <<README
 Ciphwren Desktop $VERSION
 
-Notes, bookmarks, calendar, tasks and contacts on EteSync, end-to-end encrypted, as a web app
+Notes, bookmarks, calendar, tasks and contacts on an Etebase server, end-to-end encrypted, as a web app
 that runs on this computer only (http://localhost:8092).
 
 To try it without installing anything, run ./ciphwren-desktop in this directory.
