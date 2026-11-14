@@ -30,12 +30,12 @@ const getStyles = (theme: Theme, fontSize: number, fontFamilyKey: FontFamilyKey)
 
   const extraColors = {
     border: theme.colors.border,
-    blockBackground: (theme.dark) ? "#232428" : "#F6F6F2",
+    blockBackground: theme.colors.background,
     blockText: theme.colors.textBody,
     // Code stands out from the sheet (white, or the dark surface) and from quotes, inline code also by its color
-    codeBackground: (theme.dark) ? "#2D2F35" : "#ECECE5",
-    codeBorder: (theme.dark) ? "#3B3E45" : "#DDDDD4",
-    inlineCodeText: (theme.dark) ? "#F2A68E" : "#A63A1C",
+    codeBackground: theme.colors.field,
+    codeBorder: theme.colors.border,
+    inlineCodeText: theme.colors.warning,
     link: theme.colors.accent,
   };
 

@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: © 2019 EteSync Authors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import { Text, List, TouchableRipple } from "react-native-paper";
 
 import { Title } from "../widgets/Typography";
 import Container from "../widgets/Container";
 import Link from "../widgets/Link";
+import { Logo } from "../components/Auth";
 
 import * as C from "../constants";
 import { useTheme } from "../theme";
@@ -48,6 +49,9 @@ export default function AboutScreen() {
       style={{ backgroundColor: theme.colors.surface }}
       ListHeaderComponent={() => (
         <Container>
+          <View style={{ alignItems: "center", marginBottom: 12 }}>
+            <Logo size={72} />
+          </View>
           <Title style={{ textAlign: "center" }}>{C.appName} {version}</Title>
           <Link
             to={C.sourceCode}

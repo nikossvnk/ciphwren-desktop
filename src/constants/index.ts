@@ -24,8 +24,8 @@ export const bookmarkColType = "etebase.bookmark";
 // All of the types that are synced
 export const collectionTypes = [colType, ...pimTypes, bookmarkColType];
 
-// The colour of a collection that has none
-export const defaultColor = "#8BC34A";
+// The colour of a collection that has none: the brand's teal
+export const defaultColor = "#0E7C86";
 
 // The colours to choose from (any other one a collection has is kept)
 export const swatches: { name: string, color: string }[] = [

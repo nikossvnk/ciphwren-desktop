@@ -11,7 +11,7 @@ was taken over. It's only reachable from this computer.
 ## Installing (and updating)
 
 Needs Python 3, which most Linux systems have, and a browser (Chromium, Chrome, Brave, Edge or
-Firefox). Nothing is built on your computer: a release is the built app (about 2 MB).
+Firefox). Nothing is built on your computer: a release is the built app (about 2.5 MB).
 
 ```
 curl -fsSL https://raw.githubusercontent.com/nikossvnk/ciphwren-desktop/main/desktop/get.sh | sh

@@ -52,6 +52,16 @@ events around today, a task list, an address book and bookmarks. Running it agai
 E2E_USER=aio-tester E2E_PASSWORD=aio-tester-password node seed.js
 ```
 
+`node screenshots.js` takes the screenshots of the main README (`../.github/screenshots/`) with an
+account that `seed.js` filled once: the calendar, the tasks, a note, the bookmarks and a contact, and
+a note in dark mode. The app is told the server is `https://etebase.example.com`, which is what the
+screenshots show; the test server answers for it.
+
+```
+E2E_USER=alex E2E_PASSWORD=some-password node seed.js
+E2E_USER=alex E2E_PASSWORD=some-password node screenshots.js
+```
+
 ## Configuration
 
 | Variable | Default | |
