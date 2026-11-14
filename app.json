@@ -16,7 +16,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "themeColor": "#ffc107"
+      "themeColor": "#0B1F33"
     },
     "platforms": [
       "ios",
@@ -27,8 +27,12 @@
       "expo-font",
       ["expo-splash-screen", {
         "image": "./assets/splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#424242"
+        "imageWidth": 128,
+        "backgroundColor": "#FFFFFF",
+        "dark": {
+          "image": "./assets/splash-dark.png",
+          "backgroundColor": "#0B1F33"
+        }
       }]
     ]
   }
