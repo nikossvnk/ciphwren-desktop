@@ -38,7 +38,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList, "Signup">;
 function strength(password: string, theme: Theme) {
   const len = password.length;
   const level = (len === 0) ? 0 : (len < 8) ? 1 : (len < 12) ? 2 : 3;
-  return { level, label: ["", "Too short", "Okay", "Strong"][level], color: ["", theme.colors.warning, theme.colors.caution, theme.colors.positive][level] };
+  return { level, label: ["", "Too short", "Okay", "Strong"][level], color: ["", theme.colors.danger, theme.colors.warning, theme.colors.positive][level] };
 }
 
 export default React.memo(function SignupScreen() {

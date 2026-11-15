@@ -1,21 +1,44 @@
-# Ciphwren Desktop
+<p align="center">
+  <img src=".github/banner.png" alt="Ciphwren Desktop — calendar, tasks and notes, bookmarks and contacts, on your own server. App previews show the calendar and a note in dark mode." width="100%" />
+</p>
 
-One app for notes, bookmarks, calendar, tasks and contacts on an Etebase server, made from
-[ciphwren-notes](https://github.com/nikossvnk/ciphwren-notes) and [ciphwren-web](https://github.com/nikossvnk/ciphwren-web). It's a copy: the two projects
-themselves are not changed.
+<p align="center">
+  End-to-end encrypted calendar, tasks, notes, bookmarks and contacts for the Linux desktop.<br />
+  Works offline. Syncs with an Etebase server you run yourself.
+</p>
 
-- **The base is ciphwren-notes**: its UI (react-native-paper, the sidebar, the theme), its offline-first
-  sync (changes are kept on the device and pushed later, conflicts are resolved) and its screens.
-  It's still a React Native app; it's built for the web only (the Android app is ciphwren-notes).
-- **From ciphwren-web** comes the logic, not the UI: the calendar, task and contact model
-  (`src/pim/pim-types.ts`, iCalendar and vCard through ical.js, with the time zones), how items are
-  made and changed (UIDs, all day events ending on the next day, repeating tasks getting their next
-  time when done, …), the first run wizard that makes a calendar, a task list and an address book,
-  and its settings (date and time format, task sorting).
-- **From ciphwren-notes' Android app** come the bookmarks (`src/bookmarks.ts`): the same collection
-  type (`etebase.bookmark`) and data, so the bookmarks saved on the phone are the ones here.
-- **New** are the Bookmarks, Calendar, Tasks and Contacts screens, made with the components and theme of the
-  notes, in the sidebar (wide screens) and the drawer (phones).
+<p align="center">
+  <a href="#installing-it"><strong>Install on Linux</strong></a>
+  &nbsp;·&nbsp;
+  <a href="#whats-in-it">What's in it</a>
+  &nbsp;·&nbsp;
+  <a href="#security-and-privacy">Security and privacy</a>
+  &nbsp;·&nbsp;
+  <a href="#running-it">Development</a>
+</p>
+
+## Everything in one private place
+
+| Plan your time | Write and save | Keep control |
+| --- | --- | --- |
+| A calendar with day, week, month and agenda views, repeating events, reminders and time zones. | Markdown notes in notebooks, with pinned notes, search and earlier versions. | End-to-end encryption with an Etebase server you run yourself. |
+| Tasks with priorities, due dates, subtasks and lists. | Bookmarks with lists and tags. Tracking parameters such as `utm_source` and `fbclid` are removed from saved links. | Work offline; changes sync when the connection is back. |
+| Contacts in address books and groups, with the events, notes and tasks about them. | Import and export `.ics`, `.vcf`, Markdown and browsers' bookmark files. | The app talks to your server only. A bookmark's page is fetched just when you ask for its title. |
+
+<details>
+<summary>Explore the app — full-size screenshots</summary>
+
+Select an image to view it at full size.
+
+| Calendar | Tasks | Notes |
+| :---: | :---: | :---: |
+| [![The month, with the chosen day's events and what's coming up](.github/screenshots/calendar.png)](.github/screenshots/calendar.png) | [![Tasks by due date, with a task's details](.github/screenshots/tasks.png)](.github/screenshots/tasks.png) | [![A Markdown note with a checklist, next to the list of notes](.github/screenshots/notes.png)](.github/screenshots/notes.png) |
+
+| Bookmarks | Contacts | Dark mode |
+| :---: | :---: | :---: |
+| [![Bookmarks with tags, and the form to save a link](.github/screenshots/bookmarks.png)](.github/screenshots/bookmarks.png) | [![A contact's details, with what's coming up together](.github/screenshots/contacts.png)](.github/screenshots/contacts.png) | [![A note in dark mode](.github/screenshots/dark-mode.png)](.github/screenshots/dark-mode.png) |
+
+</details>
 
 ## Installing it
 
@@ -25,7 +48,7 @@ On Linux, with Python 3 and a browser (Chromium, Chrome, Brave, Edge or Firefox)
 curl -fsSL https://raw.githubusercontent.com/nikossvnk/ciphwren-desktop/main/desktop/get.sh | sh
 ```
 
-It downloads the latest release (the built app, about 2 MB) from this repository's GitHub
+It downloads the latest release (the built app, about 2.5 MB) from this repository's GitHub
 releases, checks its checksum, and installs it in your home directory, with "Ciphwren Desktop" in
 the applications menu. It runs on `http://localhost:8092`, only reachable from
 this computer. Then log in with your server's URL (under "Advanced settings"), e.g.
@@ -56,6 +79,25 @@ More options (port, browser) and how releases are made are in `desktop/README.md
 | Collections | Like the web app's Collections and Import pages. The + of each section of the sidebar makes a calendar, task list, address book, notebook or bookmark list (name, description, colour); the ⋯ of each has its colour, editing, sharing, showing only it, exporting (.ics, .vcf, .md, and .html for bookmarks, which browsers can import), importing into it and deleting. Settings → Collections lists them all, with how much is in them, who they're shared with and when they changed, and edits the chosen one: its details, who has access (invitations by username, after checking their security fingerprint; changing and removing access), its changes, and deleting it (or leaving one shared with you). Importing: .ics (events and tasks), .vcf (contacts), .md or .txt files (a note each) and .html bookmark files exported from Chrome, Firefox and other browsers (the folders the bookmarks were in become their tags) are read on the device; what's in them can go to existing or new collections, what's there already (by its UID, or the link for bookmarks) is skipped, updated or copied, and what can't be read is reported with its line. The wizard makes the missing collections for new accounts. On phones too, notebooks are made with the same dialog (from the notebooks, or a new note when there's no notebook yet) and edited in Settings → Collections (from a notebook's Manage → Edit). |
 | Login, signup, account | Do what the web app's do (the same Etebase calls and checks). On wide screens a card under a bar with the help links and the settings, on phones the menu. The server is shown, and changed only when asked to. Signing up shows how strong the password is, and needs agreeing that it can't be recovered. |
 | Settings | One screen: the notes' settings, and "Calendar and Tasks" with the settings of the web app. The web app's dark mode setting is the notes' theme setting. |
+
+## Where it comes from
+
+One app for notes, bookmarks, calendar, tasks and contacts on an Etebase server, made from
+[ciphwren-notes](https://github.com/nikossvnk/ciphwren-notes) and [ciphwren-web](https://github.com/nikossvnk/ciphwren-web). It's a copy: the two projects
+themselves are not changed.
+
+- **The base is ciphwren-notes**: its UI (react-native-paper, the sidebar, the theme), its offline-first
+  sync (changes are kept on the device and pushed later, conflicts are resolved) and its screens.
+  It's still a React Native app; it's built for the web only (the Android app is ciphwren-notes).
+- **From ciphwren-web** comes the logic, not the UI: the calendar, task and contact model
+  (`src/pim/pim-types.ts`, iCalendar and vCard through ical.js, with the time zones), how items are
+  made and changed (UIDs, all day events ending on the next day, repeating tasks getting their next
+  time when done, …), the first run wizard that makes a calendar, a task list and an address book,
+  and its settings (date and time format, task sorting).
+- **From ciphwren-notes' Android app** come the bookmarks (`src/bookmarks.ts`): the same collection
+  type (`etebase.bookmark`) and data, so the bookmarks saved on the phone are the ones here.
+- **New** are the Bookmarks, Calendar, Tasks and Contacts screens, made with the components and theme of the
+  notes, in the sidebar (wide screens) and the drawer (phones).
 
 ## How it fits together
 
@@ -156,6 +198,17 @@ npm install
 npx expo start --web                         # development
 npx expo export -p web --output-dir web-build  # a build, e.g. served by e2e/serve.js
 ```
+
+### Brand assets and screenshots
+
+The colours are the ones of the Ciphwren brand guidelines, in `src/theme.ts`. The mark is
+`assets/brand/icon.svg`: `python3 scripts/generate-brand-assets.py` makes the app's icons from it (the
+icon in the applications menu and of notifications, the tab icon, the logo in the app). It's only
+needed when the mark changes.
+
+The screenshots of this page (`.github/screenshots/`) are taken by `e2e/screenshots.js`, of the web
+build with the sample data (see `e2e/README.md`). The banner is put together from two of them by
+hand, so it has to be made again when they change a lot.
 
 ## Tests
 

@@ -26,10 +26,10 @@ import { DarkTheme, LightTheme } from "./theme";
 import { useWideLayout } from "./components/WideLayout";
 import { useFonts } from "expo-font";
 // Each weight from its own file: the package's index has all 18, and the build would include them all
-import { IBMPlexSans_400Regular } from "@expo-google-fonts/ibm-plex-sans/400Regular";
-import { IBMPlexSans_500Medium } from "@expo-google-fonts/ibm-plex-sans/500Medium";
-import { IBMPlexSans_600SemiBold } from "@expo-google-fonts/ibm-plex-sans/600SemiBold";
-import { IBMPlexSans_700Bold } from "@expo-google-fonts/ibm-plex-sans/700Bold";
+import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
+import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
+import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
+import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 
 enableScreens();
 // (in the installed app, links to other sites open in the default browser)
@@ -99,7 +99,7 @@ function InnerApp() {
   useWebScrollbars(theme);
   const wideLayout = useWideLayout();
   // The font of the app, which is part of it, so this is quick (and it falls back to the system's if it fails)
-  const [fontsLoaded, fontsError] = useFonts({ IBMPlexSans_400Regular, IBMPlexSans_500Medium, IBMPlexSans_600SemiBold, IBMPlexSans_700Bold });
+  const [fontsLoaded, fontsError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
 
   if (!fontsLoaded && !fontsError) {
     return null;

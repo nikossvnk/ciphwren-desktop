@@ -11,6 +11,8 @@
 * "Logout & Reload" (and "Enable Logging & Reload") on the error screen save the change before reloading, instead of sometimes coming back logged in
 * Code in notes stands out more in the viewer: a darker background, a border around code blocks, and inline code in its own color
 * Text copied from the note viewer keeps its formatting but not the theme's colours (it was pasted elsewhere as light text on a dark background), and Ctrl+A in the viewer selects the note's text instead of the whole page
+* The Ciphwren brand: its colours (teal on the light theme, cyan on deep navy on the dark one), Inter instead of IBM Plex Sans, and the bird as the app's logo, its icon in the applications menu and its tab icon
+* A task of high priority is marked in red and one of medium priority in amber (they were orange and yellow), and so are a password that is too short and one that is okay when signing up
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it
