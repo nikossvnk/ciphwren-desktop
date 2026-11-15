@@ -1,7 +1,7 @@
 {
   "name": "ciphwren-desktop-e2e",
   "private": true,
-  "description": "Browser tests of the web build of EteSync Notes against an Etebase test server",
+  "description": "Browser tests of the web build of Ciphwren Desktop against an Etebase test server",
   "scripts": {
     "test": "node run.js"
   },

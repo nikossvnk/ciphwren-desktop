@@ -49,7 +49,7 @@ with sample data to try the app with: two notebooks of notes (two of them pinned
 events around today, a task list, an address book and bookmarks. Running it again adds them again.
 
 ```
-E2E_USER=aio-tester E2E_PASSWORD=aio-tester-password node seed.js
+E2E_USER=alex E2E_PASSWORD=some-password node seed.js
 ```
 
 `node screenshots.js` takes the screenshots of the main README (`../.github/screenshots/`) with an

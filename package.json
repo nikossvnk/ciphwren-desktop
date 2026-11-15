@@ -83,7 +83,7 @@
   },
   "overrides": {
     "react-native-markdown-display": {
-      "markdown-it": "^14.3.2"
+      "markdown-it": "^14.3.3"
     },
     "eslint-plugin-react": {
       "eslint": "$eslint"
