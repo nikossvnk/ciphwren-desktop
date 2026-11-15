@@ -118,7 +118,7 @@ function compare(sortBy: TaskSettingsType["sortBy"]) {
 const defaultView: TaskViewType = { groupBy: "date", priorities: [] };
 
 function priorityColor(theme: ReturnType<typeof useTheme>, priority: Priority) {
-  return { high: theme.colors.warning, medium: theme.colors.caution, low: theme.colors.accent, none: theme.colors.textMuted }[priority];
+  return { high: theme.colors.danger, medium: theme.colors.warning, low: theme.colors.accent, none: theme.colors.textMuted }[priority];
 }
 
 // The mark of a priority: as many bars filled as it's high (so it isn't told by its colour alone)

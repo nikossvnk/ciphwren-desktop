@@ -6,7 +6,7 @@
 // above the form. And the parts of their forms.
 
 import * as React from "react";
-import { Linking, Platform, ScrollView, StyleSheet, TextInput, TextInputInstance, View } from "react-native";
+import { Image, Linking, Platform, ScrollView, StyleSheet, TextInput, TextInputInstance, View } from "react-native";
 import { ActivityIndicator, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -23,14 +23,17 @@ export const helpLinks = [
   { title: "Report an issue", link: C.reportIssue, icon: "bug-outline" },
 ];
 
-// The app's mark: a lock, as everything in it is encrypted
+// The app's mark, for the theme's background (next to the app's name, so it has no label of its own)
 export function Logo(props: { size?: number }) {
   const theme = useTheme();
   const size = props.size ?? 32;
   return (
-    <View style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: tint(theme.colors.accent, 0.16), alignItems: "center", justifyContent: "center" }}>
-      <MaterialCommunityIcons name="lock-outline" size={size * 0.56} color={theme.colors.accent} />
-    </View>
+    <Image
+      source={(theme.dark) ? require("../images/icon-dark.png") : require("../images/icon.png")}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+      aria-hidden
+    />
   );
 }
 
