@@ -13,6 +13,8 @@
 * Text copied from the note viewer keeps its formatting but not the theme's colours (it was pasted elsewhere as light text on a dark background), and Ctrl+A in the viewer selects the note's text instead of the whole page
 * The Ciphwren brand: its colours (teal on the light theme, cyan on deep navy on the dark one), Inter instead of IBM Plex Sans, and the bird as the app's logo, its icon in the applications menu and its tab icon
 * A task of high priority is marked in red and one of medium priority in amber (they were orange and yellow), and so are a password that is too short and one that is okay when signing up
+* A right click on a task has "Edit" and "Delete"
+* A note written to do so can no longer make the viewer take very long to show it (markdown-it 14.3.3)
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it
