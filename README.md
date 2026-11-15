@@ -132,8 +132,7 @@ More options (port, browser) and how releases are made are in `desktop/README.md
   task: its title gets a "✓ " while the task is done, it moves with the due date, and it's deleted
   with the task, with its due date, or when the box is unticked. The next time of a repeating task
   gets an event of its own. The day view's "Tasks due" leaves out the tasks whose event is there.
-  The two are linked in the synced data (`X-CIPHWREN-EVENT` on the task, `X-CIPHWREN-TASK` on the
-  event), so every device keeps them together.
+  Every device keeps a task and its event together.
 
 ### Notes
 
@@ -281,61 +280,12 @@ npx expo export -p web --output-dir web-build  # a build, e.g. served by e2e/ser
 
 ### How it fits together
 
-- It's a React Native app (Expo, react-native-paper) that is built for the web only. It works
-  offline first: changes are kept on the device and pushed later.
-- `src/store/construct.ts`: everything that is synced is in `allCache`. `cache` is a view of only
-  the notebooks and their notes, which the notes' screens use.
-- `src/sync/SyncManager.ts`: syncs the five collection types (notes, events, tasks, contacts and
-  bookmarks, in `src/constants/index.ts`). When the types it syncs change (e.g. an update brings a
-  new one), all collections are listed again, so the older ones of the new type are found too. A
-  conflict on an event, task, contact or bookmark keeps the server's version (a "conflict copy", like
-  notes get, would be a second event with the same UID). A note changed here and elsewhere gets a
-  conflict copy only when its name or content was changed here (the revision the change was made to
-  is looked up to tell), and a pin made here is kept on the version from elsewhere.
-- `src/pim/`: the calendar, tasks, contacts and bookmarks screens. `pim-types.ts` is the model of
-  events, tasks and contacts (iCalendar and vCard through ical.js, with the time zones), and
-  `data.ts` reads and saves their items through the same offline queue as the notes.
-- `src/bookmarks.ts`: the bookmarks (the title is the item's name, the link and the rest are in its
-  metadata) and taking the tracking parameters out of links.
-- `desktop/`: the local web server, the installer and how a release is made (see
-  `desktop/README.md`).
-
-### The stored data
-
-The browser keeps the app's data in its local storage for the app's address (DevTools →
-Application → Local storage → `http://localhost:8092`), in four entries:
-
-| Key | What's in it |
-|---|---|
-| `persist:cache` | Every synced collection and item |
-| `persist:sync` | The changes not uploaded yet, and where the last sync stopped |
-| `persist:settings` | The view settings |
-| `persist:credentials` | The login (with the account's keys, don't share it) |
-
-Each of their fields is JSON in a JSON string. This, in the console, shows one as an object:
-
-```js
-const read = (k) => { const o = JSON.parse(localStorage.getItem("persist:" + k)); for (const x in o) { try { o[x] = JSON.parse(o[x]); } catch {} } return o; };
-const cache = read("cache");
-// The collections by type (etebase.md.note, etebase.vevent, etebase.vtodo, etebase.vcard, etebase.bookmark)
-Object.values(cache.collections).reduce((r, c) => ((r[c.collectionType] ??= []).push(c.meta.name), r), {});
-```
-
-The cache is grouped by collection, not by type:
-
-```
-collections: { "<collection UID>": { collectionType, meta, cache } }
-items:       { "<collection UID>": { "<item UID>": { meta, isDeleted, cache } } }
-```
-
-On the server everything is encrypted, the collection type too (the server has a keyed hash of
-it, so that it can list the collections of a type without knowing which type it is). When syncing,
-the app keeps `cache` as it came, encrypted (Etebase's `cacheSave`, which also has the meta), and
-next to it the decrypted `meta` and `collectionType` (`src/store/actions.ts`), so that the lists,
-the search and sorting don't decrypt every item. The contents (a note's Markdown, an event's
-iCalendar, a contact's vCard) are only decrypted in memory, when they're needed. The login in
-`persist:credentials` isn't encrypted with a key on the web (`src/sessionKey.web.ts`: a browser
-has no safe place for one), so whoever can read the browser profile can decrypt the rest.
+A React Native app (Expo, react-native-paper) built for the web only, offline first: changes are
+kept on the device and pushed later. The notes come from Ciphwren Notes; the calendar, task and
+contact logic (iCalendar and vCard through ical.js) from ciphwren-web. Everything is stored in the
+browser's local storage for the app's address, encrypted like on the server except what the lists
+need (see [Security and privacy](#security-and-privacy)); logging out removes it. `desktop/` has
+the local web server, the installer and how releases are made (see `desktop/README.md`).
 
 ### Brand assets and screenshots
 
@@ -350,42 +300,12 @@ hand, so it has to be made again when they change a lot.
 
 ### Tests
 
+- `npm test`: the unit tests in `test/` (Node.js 22 or newer; `serve.test.js` also needs Python 3).
+  They check the app's logic without a browser or a server.
+- `e2e/`: browser tests of the web build in a headless Chromium against an Etebase test server,
+  checking the result on the server too. See `e2e/README.md` for running them.
+
 Every test file starts with what it checks.
-
-`npm test` runs the unit tests in `test/`, with Node.js 22 or newer and nothing else to install or
-start (`serve.test.js` also needs Python 3). They check the app's own logic, without a browser or a
-server:
-
-| What | Tests |
-|---|---|
-| The calendar: the times of repeating events, where the hours show events, time zones, the times the app writes | `occurrences`, `timegrid`, `timezones`, `timestamps` |
-| Reminders, and the notifications the local server shows for them | `reminders`, `serve` |
-| Tasks: priorities, the order and groups of the list, their events in the calendar | `tasks`, `taskEvents` |
-| Notes: the formatting bar, pasting text as Markdown | `markdownFormat`, `pasteMarkdown` |
-| Bookmarks: taking out tracking parameters | `tracking` |
-| The fields the history shows | `historyFields` |
-| The store and the parsed items that the screens share | `store`, `data` |
-| The links handed to the local server, the version that About shows | `externalLinks`, `appVersion` |
-
-`test/register.js` compiles the app's TypeScript for them and replaces the modules that need React
-Native or a device.
-
-The browser tests in `e2e/tests/` use the web build in a headless Chromium against an Etebase test
-server, and check what was done on the server too (see `e2e/README.md` for running them):
-
-| What | Tests |
-|---|---|
-| Logging in and signing up | `auth`, `login-and-markdown` |
-| Notes | `view-mode`, `format-bar`, `editor-shortcuts`, `edit-exit`, `note-title`, `note-menu`, `empty-notes`, `pinned-notes`, `select-notes`, `viewer-copy`, `remote-images`, `dark-mode` |
-| Notebooks | `notebooks`, `notebook-filter`, `notebook-color`, `notebook-restore` |
-| Working offline and syncing | `offline`, `conflicts`, `return-sync` |
-| Calendar, tasks and contacts | `pim`, `recurring`, `timezones`, `reminders`, `old-events`, `task-priority`, `task-events`, `many-items` |
-| Bookmarks | `bookmarks` |
-| History | `history` |
-| Collections, importing and exporting | `collections`, `import`, `export` |
-| The layout and getting around | `sidebar`, `wide-actions`, `quick-actions`, `navigation` |
-| Security and privacy | `privacy`, `open-links`, `unreadable` |
-| That the tests' own helpers fail when they should | `helpers` |
 
 ## Not done yet
 
@@ -399,5 +319,5 @@ server, and check what was done on the server too (see `e2e/README.md` for runni
 
 ## License
 
-GPL-3.0-only. The files that come from ciphwren-web keep their AGPL-3.0-only notice at their top, so
+GPL-3.0-only. The files that come from EteSync's [etesync-web](https://github.com/etesync/etesync-web) keep their AGPL-3.0-only notice at their top, so
 the app as a whole has to follow the AGPL. Both texts are in `LICENSES/`.

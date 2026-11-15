@@ -48,10 +48,6 @@ fill the lists the tests look in; `E2E_KEEP_DATA=1` skips that. Running some of 
 with sample data to try the app with: two notebooks of notes (two of them pinned), a calendar with
 events around today, a task list, an address book and bookmarks. Running it again adds them again.
 
-```
-E2E_USER=alex E2E_PASSWORD=some-password node seed.js
-```
-
 `node screenshots.js` takes the screenshots of the main README (`../.github/screenshots/`) with an
 account that `seed.js` filled once: the calendar, the tasks, a note, the bookmarks and a contact, and
 a note in dark mode. The app is told the server is `https://etebase.example.com`, which is what the
