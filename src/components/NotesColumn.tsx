@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useDateFormats } from "../pim/format";
 import { FlatList, Platform, StyleSheet, View } from "react-native";
-import { Menu, Paragraph, Text, TouchableRipple } from "react-native-paper";
+import { Menu, Text, TouchableRipple } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import * as Etebase from "etebase";
 
@@ -12,8 +12,8 @@ import { StoreState } from "../store";
 import { pushMessage, setSettings } from "../store/actions";
 import { useCredentials } from "../credentials";
 import { useSyncGate } from "../SyncGate";
-import { deleteNotes, isPinned, moveNotes, setPinned, untitled } from "../notes";
-import ConfirmationDialog from "../widgets/ConfirmationDialog";
+import { isPinned, moveNotes, setPinned, untitled } from "../notes";
+import { deleteLater } from "../pendingDeletes";
 import { useNoteSearch } from "../search";
 import { fonts, useTheme } from "../theme";
 import Link from "../widgets/Link";
@@ -21,7 +21,7 @@ import AppbarButton from "../widgets/AppbarButton";
 import SyncButton, { syncPausedOn, useAutoSync } from "./SyncButton";
 import { Result } from "../screens/SearchScreen";
 import { Entry, getSortFunction, PinnedNotes, SelectionButtons, shortDate, splitPinned, useItemManagers, useNotePreview } from "./NoteList";
-import { useSearchQuery, useWideNavigation } from "./WideLayout";
+import { noSelectWhile, ResizeHandle, useNotesColumnResize, useSearchQuery, useWideNavigation } from "./WideLayout";
 import { defaultColor } from "../constants";
 
 interface RowPropsType {
@@ -98,10 +98,9 @@ export default function NotesColumn() {
   const results = useNoteSearch(query, searching && !syncGate);
   // (it syncs when the column is shown)
   const sync = useAutoSync(syncPausedOn(currentScreen));
+  const resize = useNotesColumnResize();
   // The notes selected with ctrl (or cmd) and a click, to pin or delete them
   const [selection, setSelection] = React.useState<Set<string>>(() => new Set());
-  // The notes the dialog asks about deleting
-  const [deleting, setDeleting] = React.useState<Set<string>>();
   // The right-click menu: the notes it's for, where it is, and whether it lists the notebooks to move them to
   const [menu, setMenu] = React.useState<{ notes: Set<string>, x: number, y: number, moving?: boolean }>();
   const selecting = selection.size > 0;
@@ -149,14 +148,14 @@ export default function NotesColumn() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selecting]);
 
-  async function deleteChosen() {
-    const notes = deleting!;
-    await deleteNotes(etebase!, notes);
-    setDeleting(undefined);
+  // Deletes them without asking: "Note deleted" with Undo is shown, see pendingDeletes.tsx
+  async function deleteChosen(notes: Set<string>) {
+    setMenu(undefined);
     setSelection((prev) => new Set([...prev].filter((x) => !notes.has(x))));
     if (currentNote && notes.has(currentNote)) {
       navigate("Home");
     }
+    await deleteLater(etebase!, "note", notes);
   }
 
   // A right click on a note opens the menu, for the selected notes when it's one of them
@@ -233,7 +232,7 @@ export default function NotesColumn() {
     : `${entries.length} ${(entries.length === 1) ? "note" : "notes"}`;
 
   return (
-    <View testID="notes-column" style={[styles.column, { backgroundColor: theme.colors.background, borderRightColor: theme.colors.border }]}>
+    <View testID="notes-column" style={[styles.column, { width: resize.width, backgroundColor: theme.colors.background, borderRightColor: theme.colors.border }, noSelectWhile(resize)]}>
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={[styles.heading, { color: theme.colors.text }]} accessibilityRole="header" numberOfLines={1}>{title}</Text>
@@ -241,7 +240,7 @@ export default function NotesColumn() {
         </View>
         {selecting && (
           <>
-            <SelectionButtons selection={selection} allPinned={allPinned} onPinned={() => setSelection(new Set())} onDelete={() => setDeleting(new Set(selection))} />
+            <SelectionButtons selection={selection} allPinned={allPinned} onPinned={() => setSelection(new Set())} onDelete={() => deleteChosen(new Set(selection))} />
             <AppbarButton icon="close" title="Clear selection" onPress={() => setSelection(new Set())} />
           </>
         )}
@@ -268,14 +267,6 @@ export default function NotesColumn() {
           />
         )}
       </View>
-      <ConfirmationDialog
-        title="Delete Notes"
-        visible={!!deleting}
-        onOk={deleteChosen}
-        onCancel={() => setDeleting(undefined)}
-      >
-        <Paragraph>{`Are you sure you would like to delete ${(deleting?.size === 1) ? "this note" : `these ${deleting?.size} notes`}?`}</Paragraph>
-      </ConfirmationDialog>
       {menu && (
         <Menu visible onDismiss={() => setMenu(undefined)} anchor={{ x: menu.x, y: menu.y }}>
           {(menu.moving) ? moveTargets.map((x) => (
@@ -305,10 +296,7 @@ export default function NotesColumn() {
               <Menu.Item
                 title={(menu.notes.size === 1) ? "Delete" : `Delete ${menu.notes.size} notes`}
                 leadingIcon="delete-outline"
-                onPress={() => {
-                  setDeleting(menu.notes);
-                  setMenu(undefined);
-                }}
+                onPress={() => deleteChosen(menu.notes)}
               />
             </>
           )}
@@ -358,14 +346,16 @@ export default function NotesColumn() {
           )}
         />
       )}
+      <ResizeHandle resize={resize} label="Change the width of the notes column" testID="notes-column-resize" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   column: {
-    width: 340,
     borderRightWidth: StyleSheet.hairlineWidth,
+    // Over the screen next to it, which the handle of the edge reaches into
+    zIndex: 1,
   },
   header: {
     flexDirection: "row",

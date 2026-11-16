@@ -21,7 +21,7 @@ run(async () => {
   const path = () => new URL(A.p.url()).pathname;
 
   // The sections, by their place in the sidebar
-  const sections = [["Calendar", "/calendar"], ["Tasks", "/tasks"], ["Notes", "/"], ["Bookmarks", "/bookmarks"], ["Contacts", "/contacts"]];
+  const sections = [["Calendar", "/calendar"], ["Tasks", "/tasks"], ["Notes", "/notes"], ["Bookmarks", "/bookmarks"], ["Contacts", "/contacts"]];
   for (const [i, [name, where]] of [...sections.entries()].reverse()) {
     await A.p.keyboard.press(`Alt+${i + 1}`); await A.wait(1500);
     check(`Alt+${i + 1} goes to ${name}`, path() === where, path());

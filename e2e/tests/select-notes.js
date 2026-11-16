@@ -28,10 +28,10 @@ run(async () => {
   const path = () => new URL(A.p.url()).pathname;
 
   await longPress(names[0]);
-  check("narrow: a long press selects a note, without opening it", await selected(names[0]) && path() === "/", path());
+  check("narrow: a long press selects a note, without opening it", await selected(names[0]) && path() === "/notes", path());
   check("narrow: the bar says how many are selected", await A.has("1 selected"));
   await row(names[1]).click(); await A.wait(800);
-  check("narrow: then a press selects another one", await selected(names[1]) && path() === "/" && await A.has("2 selected"));
+  check("narrow: then a press selects another one", await selected(names[1]) && path() === "/notes" && await A.has("2 selected"));
   await row(names[1]).click(); await A.wait(800);
   check("narrow: and pressed again it's not selected", !(await selected(names[1])) && await A.has("1 selected"));
   await A.btn(/^clear selection$/i).click(); await A.wait(800);
@@ -43,8 +43,8 @@ run(async () => {
   // Deleting two of them
   await longPress(names[0]);
   await row(names[1]).click(); await A.wait(800);
-  await A.btn(/^delete selected$/i).click(); await A.wait(800);
-  await A.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await A.wait(6000);
+  // (they're deleted when the message with Undo goes away)
+  await A.btn(/^delete selected$/i).click(); await A.wait(12000);
   check("narrow: deleting the selected notes deletes them on the server",
     JSON.stringify(await onServer(names[0])) === JSON.stringify(["DELETED:" + names[0]]) &&
     JSON.stringify(await onServer(names[1])) === JSON.stringify(["DELETED:" + names[1]]), [await onServer(names[0]), await onServer(names[1])]);
@@ -75,8 +75,7 @@ run(async () => {
 
   // Deleting the open note with another one goes back to no note open
   await note(names[2]).click({ modifiers: ["Control"] }); await W.wait(800);
-  await W.btn(/^delete selected$/i).click(); await W.wait(800);
-  await W.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await W.wait(6000);
+  await W.btn(/^delete selected$/i).click(); await W.wait(12000);
   check("wide: deleting them deletes them on the server",
     JSON.stringify(await onServer(names[2])) === JSON.stringify(["DELETED:" + names[2]]) &&
     JSON.stringify(await onServer(names[3])) === JSON.stringify(["DELETED:" + names[3]]), [await onServer(names[2]), await onServer(names[3])]);

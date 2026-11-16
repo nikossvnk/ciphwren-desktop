@@ -37,8 +37,8 @@ run(async () => {
   // A note deleted in the app isn't exported
   await A.home(); await A.openNotebook(second);
   await A.open("Gone " + n);
-  await A.btn(/^delete$/i).click(); await A.wait(800);
-  await A.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await A.wait(5000);
+  // (it's deleted when the message with Undo goes away)
+  await A.btn(/^delete$/i).click(); await A.wait(14000);
   check("the note was deleted on the server", (await api.noteNames()).includes("DELETED:Gone " + n));
 
   await A.p.goto(config.appUrl + "/settings"); await A.wait(6000);

@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
-import { FAB, Paragraph, Text, TouchableRipple } from "react-native-paper";
+import { FAB, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,8 +21,8 @@ import Appbar from "../widgets/Appbar";
 import AppbarButton from "../widgets/AppbarButton";
 import { DefaultNavigationProp } from "../RootStackParamList";
 import { fonts, useTheme } from "../theme";
-import ConfirmationDialog from "../widgets/ConfirmationDialog";
-import { deleteNotes, isPinned } from "../notes";
+import { isPinned } from "../notes";
+import { deleteLater } from "../pendingDeletes";
 
 interface PropsType {
   active: boolean;
@@ -58,7 +58,6 @@ export default function NoteListScreen(props: PropsType) {
   const etebase = useCredentials();
   // The notes that are selected (by a long press), to delete them
   const [selection, setSelection] = React.useState<Set<string>>(() => new Set());
-  const [deleteShown, setDeleteShown] = React.useState(false);
   const selecting = selection.size > 0;
   // Whether all of the selected notes are pinned, so that the button unpins them
   const allPinned = useSelector((state: StoreState) => selecting && [...selection].every((note) => {
@@ -129,7 +128,17 @@ export default function NoteListScreen(props: PropsType) {
         ),
         headerRight: () => (
           <View style={{ flexDirection: "row" }}>
-            <SelectionButtons selection={selection} allPinned={allPinned} onPinned={() => setSelection(new Set())} onDelete={() => setDeleteShown(true)} />
+            <SelectionButtons
+              selection={selection}
+              allPinned={allPinned}
+              onPinned={() => setSelection(new Set())}
+              // (without asking: "Note deleted" with Undo is shown, see pendingDeletes.tsx)
+              onDelete={async () => {
+                const notes = selection;
+                setSelection(new Set());
+                await deleteLater(etebase!, "note", notes);
+              }}
+            />
           </View>
         ),
       });
@@ -203,19 +212,6 @@ export default function NoteListScreen(props: PropsType) {
         onSelect={longPress}
         onPressNote={pressNote}
       />
-
-      <ConfirmationDialog
-        title="Delete Notes"
-        visible={deleteShown}
-        onOk={async () => {
-          await deleteNotes(etebase!, selection);
-          setDeleteShown(false);
-          setSelection(new Set());
-        }}
-        onCancel={() => setDeleteShown(false)}
-      >
-        <Paragraph>{`Are you sure you would like to delete ${(selection.size === 1) ? "this note" : `these ${selection.size} notes`}?`}</Paragraph>
-      </ConfirmationDialog>
 
       {!selecting && <FAB
         icon="plus"

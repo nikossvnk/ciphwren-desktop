@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
+import { GestureResponderHandlers, PanResponder, Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { NavigationState, StackActions, useNavigation, useNavigationState } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -9,6 +10,114 @@ import { StoreState } from "../store";
 import { setSettings } from "../store/actions";
 import { useCredentials } from "../credentials";
 import { useDeviceBreakpoint } from "../helpers";
+import { useTheme } from "../theme";
+
+// The widths of the columns can be changed between these, and always leave room for the columns
+// next to them: the sidebar for the notes column and the note (the room of `sidebarRoom`), the notes
+// column for the note (`noteRoom`) next to the sidebar
+const sidebarLimits = { min: 200, max: 400 };
+const sidebarRoom = 720;
+const notesColumnLimits = { min: 260, max: 600 };
+const noteRoom = 420;
+const notesColumnDefaultWidth = 340;
+
+function clamp(width: number, min: number, max: number) {
+  return Math.round(Math.max(min, Math.min(width, max)));
+}
+
+function sidebarWidthIn(width: number, windowWidth: number) {
+  return clamp(width, sidebarLimits.min, Math.min(sidebarLimits.max, windowWidth - sidebarRoom));
+}
+
+// The width of a column whose edge can be dragged, and the handlers of the handle on that edge
+export interface Resize {
+  width: number;
+  dragging: boolean;
+  handlers: GestureResponderHandlers;
+}
+
+// Changes the width of a column by dragging the handle on its edge. The width is shown while
+// dragging and saved when it's let go; `widthIn` keeps it within its limits for the window's width.
+function useResize(savedWidth: number, save: (width: number) => void, widthIn: (width: number, windowWidth: number) => number): Resize {
+  const windowWidth = useWindowDimensions().width;
+  const [dragWidth, setDragWidth] = React.useState<number>();
+  const startRef = React.useRef(savedWidth);
+  const latest = React.useRef({ savedWidth, windowWidth, save, widthIn });
+  latest.current = { savedWidth, windowWidth, save, widthIn };
+
+  const panResponder = React.useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      startRef.current = latest.current.widthIn(latest.current.savedWidth, latest.current.windowWidth);
+      setDragWidth(startRef.current);
+    },
+    onPanResponderMove: (_e, gesture) => {
+      setDragWidth(latest.current.widthIn(startRef.current + gesture.dx, latest.current.windowWidth));
+    },
+    onPanResponderRelease: (_e, gesture) => {
+      latest.current.save(latest.current.widthIn(startRef.current + gesture.dx, latest.current.windowWidth));
+      setDragWidth(undefined);
+    },
+    onPanResponderTerminate: () => setDragWidth(undefined),
+  }), []);
+
+  return {
+    width: dragWidth ?? widthIn(savedWidth, windowWidth),
+    dragging: dragWidth !== undefined,
+    handlers: panResponder.panHandlers,
+  };
+}
+
+export function useSidebarResize() {
+  const dispatch = useDispatch();
+  const savedWidth = useSelector((state: StoreState) => state.settings.sidebarWidth);
+  return useResize(savedWidth, (sidebarWidth) => dispatch(setSettings({ sidebarWidth }) as any), sidebarWidthIn);
+}
+
+export function useNotesColumnResize() {
+  const dispatch = useDispatch();
+  const savedWidth = useSelector((state: StoreState) => state.settings.notesColumnWidth) ?? notesColumnDefaultWidth;
+  const sidebarShown = useSidebarShown();
+  const sidebarWidth = useSelector((state: StoreState) => state.settings.sidebarWidth);
+  const widthIn = (width: number, windowWidth: number) => {
+    const besides = (sidebarShown) ? sidebarWidthIn(sidebarWidth, windowWidth) : 0;
+    return clamp(width, notesColumnLimits.min, Math.min(notesColumnLimits.max, windowWidth - besides - noteRoom));
+  };
+  return useResize(savedWidth, (notesColumnWidth) => dispatch(setSettings({ notesColumnWidth }) as any), widthIn);
+}
+
+// The handle to drag the right edge of a column with, over the edge. The column needs a zIndex, to be
+// over the column next to it, which the handle reaches into.
+export function ResizeHandle(props: { resize: Resize, label: string, testID: string }) {
+  const theme = useTheme();
+  const { resize, label, testID } = props;
+  return (
+    <View
+      {...resize.handlers}
+      testID={testID}
+      accessibilityLabel={label}
+      style={[styles.handle, (Platform.OS === "web") ? ({ cursor: "col-resize" } as any) : undefined,
+        (resize.dragging) ? { backgroundColor: theme.colors.activeIcon } : undefined]}
+    />
+  );
+}
+
+// No text gets selected while dragging an edge
+export function noSelectWhile(resize: Resize) {
+  return (resize.dragging && (Platform.OS === "web")) ? ({ userSelect: "none" } as any) : undefined;
+}
+
+const styles = StyleSheet.create({
+  handle: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: -3,
+    width: 6,
+    zIndex: 1,
+  },
+});
 
 // Wide screens show three columns when logged in: the sidebar (which can be hidden), the notes, and
 // the screen of the open note (or other screen). There's no drawer then, the sidebar has its items.

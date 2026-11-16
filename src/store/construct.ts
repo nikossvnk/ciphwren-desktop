@@ -17,6 +17,7 @@ import {
   fetchCount, syncCount, credentials, settingsReducer, syncStatusReducer, lastSyncReducer, connectionReducer, errorsReducer,
   CredentialsData, SyncCollectionsData, SyncGeneralData, ConnectionInfo,
   collections, items, syncCollections, syncItems, syncGeneral, pendingCollections, CachedCollectionsData, CachedItemsData, SyncItemsData, PendingCollectionsData, messagesReducer, Message,
+  pendingDeletesReducer, PendingDeletes,
 } from "./reducers";
 
 export interface StoreState {
@@ -46,6 +47,8 @@ export interface StoreState {
   connection: ConnectionInfo | null;
   errors: List<Error>;
   messages: List<Message>;
+  // The notes or bookmarks deleted a moment ago, which the message with Undo is shown for
+  pendingDeletes: PendingDeletes;
 }
 
 const settingsMigrations = {
@@ -197,22 +200,26 @@ const reducers = combineReducers<any>({
   connection: connectionReducer,
   errors: errorsReducer,
   messages: messagesReducer,
+  pendingDeletes: pendingDeletesReducer,
 });
 
 // The notes part of the app sees only the notebooks, so "cache" is a view of the notebooks in the
 // cache of everything ("allCache"), which is what is synced and saved. The view is only made again
 // when the cache changes, and its maps stay the same objects while no notebook or note changed (so
-// the notes screens don't draw again when e.g. an event is saved).
+// the notes screens don't draw again when e.g. an event is saved). The notes waiting to be deleted
+// (`pendingDeletes`) are marked deleted in it, so that every list, count and search leaves them out.
 let lastAllCache: any;
+let lastPending: string[] | undefined;
 let lastNotesCache: any;
-export function notesView(allCache: any) {
-  if (allCache === lastAllCache) {
+export function notesView(allCache: any, pendingDeletes: string[] = []) {
+  if ((allCache === lastAllCache) && (pendingDeletes === lastPending)) {
     return lastNotesCache;
   }
   const notebooks = (allCache.collections as CachedCollectionsData).filter((x) => x.collectionType === C.colType);
-  const items = (allCache.items as CachedItemsData).filter((_items, colUid) => notebooks.has(colUid));
+  const items = shownAsDeleted((allCache.items as CachedItemsData).filter((_items, colUid) => notebooks.has(colUid)), pendingDeletes);
   const last = lastNotesCache;
   lastAllCache = allCache;
+  lastPending = pendingDeletes;
   const collections = (last && sameEntries(last.collections, notebooks)) ? last.collections : notebooks;
   const notes = (last && sameEntries(last.items, items)) ? last.items : items;
   const others = Object.keys(allCache).filter((key) => (key !== "collections") && (key !== "items"));
@@ -228,6 +235,20 @@ function sameEntries(a: ImmutableMap<string, unknown>, b: ImmutableMap<string, u
   return (a.size === b.size) && a.every((value, key) => b.get(key) === value);
 }
 
+// The items with the ones given as "colUid/itemUid" marked as deleted (only those that are in them:
+// the others are of another kind), each notebook or list with none of them staying the same object
+export function shownAsDeleted(items: CachedItemsData, deleted: string[]) {
+  let ret = items;
+  for (const key of deleted) {
+    const [colUid, itemUid] = key.split("/");
+    const item = ret.get(colUid)?.get(itemUid);
+    if (item) {
+      ret = ret.setIn([colUid, itemUid], { ...item, isDeleted: true });
+    }
+  }
+  return ret;
+}
+
 let lastState: any;
 export default function rootReducer(state: any, action: any) {
   let inner = undefined;
@@ -239,6 +260,6 @@ export default function rootReducer(state: any, action: any) {
   if (lastState && (lastState.allCache === next.cache) && Object.keys(next).every((key) => (key === "cache") || (next[key] === lastState[key]))) {
     return lastState;
   }
-  lastState = { ...next, allCache: next.cache, cache: notesView(next.cache) };
+  lastState = { ...next, allCache: next.cache, cache: notesView(next.cache, (next.pendingDeletes as PendingDeletes).items) };
   return lastState;
 }

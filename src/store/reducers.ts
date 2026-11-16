@@ -384,6 +384,20 @@ export const messagesReducer = handleActions(
   List([])
 );
 
+// The notes or bookmarks deleted a moment ago ("colUid/itemUid"), and which of the two they are
+export interface PendingDeletes {
+  what: "note" | "bookmark";
+  items: string[];
+}
+
+// (not saved: when the app is closed before they're deleted, they stay)
+export const pendingDeletesReducer = handleActions(
+  {
+    [actions.setPendingDeletes.toString()]: (_state: PendingDeletes, action: Action<PendingDeletes>) => action.payload,
+  },
+  { what: "note", items: [] } as PendingDeletes
+);
+
 // FIXME Move all the below (potentially the fetchCount ones too) to their own file
 export type ViewModeKey = "last" | "viewer" | "editor";
 
@@ -430,6 +444,8 @@ export interface SettingsType {
   sidebarVisible: boolean;
   // Its width in pixels, which can be changed by dragging its edge
   sidebarWidth: number;
+  // The width of the notes column of wide screens, changed the same way (340 until it's changed)
+  notesColumnWidth?: number;
   viewSettings: {
     defaultViewMode: ViewModeKey;
     lastViewMode: boolean;

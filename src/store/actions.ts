@@ -6,7 +6,7 @@ import { createAction as origCreateAction, ActionMeta } from "redux-actions";
 import * as Etebase from "etebase";
 
 import { ConnectionInfo, SettingsType } from "./";
-import { Message, PendingCollection } from "./reducers";
+import { Message, PendingCollection, PendingDeletes } from "./reducers";
 import { getOrCreateSessionKey } from "../sessionKey";
 
 type FunctionAny = (...args: any[]) => any;
@@ -285,6 +285,15 @@ export const popMessage = createAction(
   "POP_MESSAGE",
   () => {
     return true;
+  }
+);
+
+// The notes or bookmarks deleted a moment ago, as "colUid/itemUid": hidden at once, and deleted when
+// the message with Undo goes away (see pendingDeletes.tsx)
+export const setPendingDeletes = createAction(
+  "SET_PENDING_DELETES",
+  (pending: PendingDeletes) => {
+    return pending;
   }
 );
 

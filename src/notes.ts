@@ -104,7 +104,8 @@ export async function moveNotes(etebase: Etebase.Account, notes: Iterable<string
 }
 
 // Changes notes, given as "colUid/itemUid", and saves the ones it changed (the change returns whether
-// it changed one), one notebook at a time. Deleted notes are left out.
+// it changed one), one notebook at a time. Deleted notes are left out. (It reads `allCache`: `cache`
+// shows the notes waiting to be deleted as deleted already.)
 async function changeNotes(etebase: Etebase.Account, notes: Iterable<string>, change: (item: Etebase.Item, cached: CachedItem) => boolean) {
   const state = store.getState();
   const byNotebook = new Map<string, string[]>();
@@ -120,7 +121,7 @@ async function changeNotes(etebase: Etebase.Account, notes: Iterable<string>, ch
     const { col, itemMgr } = loaded;
     const items: Etebase.Item[] = [];
     for (const itemUid of itemUids) {
-      const cachedItem = state.cache.items.get(colUid)?.get(itemUid);
+      const cachedItem = state.allCache.items.get(colUid)?.get(itemUid);
       if (!cachedItem || cachedItem.isDeleted) {
         continue;
       }

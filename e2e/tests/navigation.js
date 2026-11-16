@@ -26,7 +26,7 @@ run(async () => {
     await A.p.getByRole("button", { name: item, exact: true }).locator("visible=true").last().click(); await A.wait(1500);
   };
 
-  await at("home has the menu button, no back button", "/", false);
+  await at("home has the menu button, no back button", "/notes", false);
   check("there's no bar of tabs at the bottom", await A.p.getByRole("tab").locator("visible=true").count() === 0);
 
   // The search is opened from the field above the notes, and finds notes by their content
@@ -34,14 +34,14 @@ run(async () => {
   check("with the cursor in the search", await A.p.evaluate(() => document.activeElement?.getAttribute("placeholder")) === "Search");
   await A.p.locator('input[placeholder="Search"] >> visible=true').fill("for the navigation test"); await A.wait(2500);
   check("the search finds the note", (await A.text()).includes(note));
-  await back(); await at("back: home", "/", false);
+  await back(); await at("back: home", "/notes", false);
 
   // The notebooks are in the menu
   await A.tab("Notebooks"); await at("the menu opens the notebooks", "/notebooks", false);
   check("which lists them", (await A.text()).includes("My Notes"));
-  await A.tab("Notes"); await at("and the notes", "/", false);
+  await A.tab("Notes"); await at("and the notes", "/notes", false);
   await A.open(note); await at("a note", "/notebook/ID/note/ID", true);
-  await back(); await at("back from the note: home", "/", false);
+  await back(); await at("back from the note: home", "/notes", false);
 
   // The properties and the move of a note used to be screens of their own, their addresses open the note
   await A.open(note);
@@ -51,12 +51,12 @@ run(async () => {
     await at(`the old address of the ${old} opens the note`, "/notebook/ID/note/ID", true);
     check(`showing it (${old})`, (await A.viewerText()).includes("for the navigation test"));
   }
-  await back(); await at("back: home", "/", false);
+  await back(); await at("back: home", "/notes", false);
 
   await A.p.goto(config.appUrl + "/settings/about"); await A.wait(6000); await at("About loaded directly", "/settings/about", true);
   check("About names the app Ciphwren Desktop", /Ciphwren Desktop \S/.test(await A.text()) && !(await A.text()).includes("EteSync"), (await A.text()).slice(0, 200));
   await back(); await at("back: Settings", "/settings", true);
-  await back(); await at("back: home", "/", false);
+  await back(); await at("back: home", "/notes", false);
 
   // A new notebook is made in the dialog of new collections, over the notebooks, and then its notes
   // are shown
@@ -66,7 +66,7 @@ run(async () => {
   check("new opens the dialog, over the notebooks", (await dialog.count() === 1) && ((await where()).path === "/notebooks"), await where());
   await dialog.locator('input[aria-label="Name"]').fill("Nav " + n);
   await dialog.getByRole("button", { name: "Create notebook", exact: true }).click(); await A.wait(4000);
-  await at("the new notebook's notes", "/", false);
+  await at("the new notebook's notes", "/notes", false);
   check("they're the new notebook's", await A.has("Nav " + n), (await A.text()).slice(0, 300));
 
   // Moving a note: the moved note replaces the one it was moved from
@@ -79,7 +79,7 @@ run(async () => {
   check("in the other notebook", new URL(A.p.url()).pathname !== before && (await A.notebookOfNote()) === "Nav " + n, await A.notebookOfNote());
   // Still the screen that was being written in, so it's still in the editor
   check("it's the moved note, still in the editor", (await A.vis("textarea").inputValue()) === "moved note");
-  await back(); await at("back: home, not the note it was moved from", "/", false);
+  await back(); await at("back: home, not the note it was moved from", "/notes", false);
   check("the moved note is listed once", (await A.text()).split("Moved " + n).length - 1 === 1);
 
   // Deleting a notebook: back home, with nothing stale behind it

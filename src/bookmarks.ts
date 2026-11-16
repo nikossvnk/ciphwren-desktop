@@ -10,7 +10,8 @@ import { createSelector } from "reselect";
 
 import * as C from "./constants";
 import { store } from "./store";
-import { CachedCollectionsData, CachedItem, CachedItemsData } from "./store/reducers";
+import { CachedCollectionsData, CachedItem, CachedItemsData, PendingDeletes } from "./store/reducers";
+import { shownAsDeleted } from "./store/construct";
 import { saveCollectionLocally, saveItemsLocally } from "./sync/SyncManager";
 import { findItem, loadItem } from "./cached";
 
@@ -73,6 +74,7 @@ interface CacheState {
     collections: CachedCollectionsData;
     items: CachedItemsData;
   };
+  pendingDeletes: PendingDeletes;
 }
 
 // The bookmark collections and their items, which only change when the cache does
@@ -80,10 +82,12 @@ const bookmarkCollectionsSelector = createSelector(
   (state: CacheState) => state.allCache.collections,
   (collections) => collections.filter((x) => x.collectionType === C.bookmarkColType)
 );
+// (the ones deleted a moment ago, which Undo can still bring back, are shown as deleted already)
 export const bookmarksSelector = createSelector(
   bookmarkCollectionsSelector,
   (state: CacheState) => state.allCache.items,
-  (cols, items) => items.filter((_x, colUid) => cols.has(colUid))
+  (state: CacheState) => state.pendingDeletes.items,
+  (cols, items, pending) => shownAsDeleted(items.filter((_x, colUid) => cols.has(colUid)), pending)
 );
 
 function toBookmark(colUid: string, uid: string, cached: CachedItem): Bookmark {
@@ -318,7 +322,7 @@ export async function updateBookmark(etebase: Etebase.Account, bookmark: Bookmar
   return { colUid: bookmark.colUid, uid: bookmark.uid };
 }
 
-export async function deleteBookmark(etebase: Etebase.Account, bookmark: Bookmark) {
+export async function deleteBookmark(etebase: Etebase.Account, bookmark: { colUid: string, uid: string }) {
   const loaded = findItem(etebase, bookmark.colUid, bookmark.uid);
   if (!loaded || loaded.item.isDeleted) {
     return;
@@ -329,13 +333,6 @@ export async function deleteBookmark(etebase: Etebase.Account, bookmark: Bookmar
   item.setMeta(meta);
   item.delete(true);
   await saveItemsLocally(etebase, col, itemMgr, [item]);
-}
-
-// Undoes deleting a bookmark. A deleted item can't come back, so it's saved again as a new one (with
-// the deleted one's meta, while the device still has it).
-export async function restoreBookmark(etebase: Etebase.Account, bookmark: Bookmark) {
-  return createBookmark(etebase, bookmark, bookmark.colUid, bookmark.created, bookmark.savedFrom,
-    findItem(etebase, bookmark.colUid, bookmark.uid)?.item.getMeta());
 }
 
 // Adds tags to several bookmarks at once (the ones that have them already stay as they are)

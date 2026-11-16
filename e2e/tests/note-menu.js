@@ -59,11 +59,11 @@ run(async () => {
 
   // Deleting one
   await row(beta).click({ button: "right" }); await A.wait(500);
-  await item("Delete").click(); await A.wait(500);
-  await A.btn(/^ok$/i).click(); await A.wait(1500);
-  check("Delete (after asking) deletes the note on the server", await waitFor(async () => (await api.noteNames()).includes(`DELETED:${beta}`) &&
+  await item("Delete").click(); await A.wait(1500);
+  check("Delete deletes it without asking: it leaves the list at once, with Undo", await row(beta).count() === 0 &&
+    await A.btn(/^undo$/i).count() === 1);
+  check("and it's deleted on the server when the message goes away", await waitFor(async () => (await api.noteNames()).includes(`DELETED:${beta}`) &&
     !(await names("My Notes")).includes(beta)), await api.noteNames());
-  check("and it leaves the list", await row(beta).count() === 0);
 
   // The open note, with what was typed in it a moment ago (not saved yet)
   await row(gamma).click(); await A.wait(2500);
