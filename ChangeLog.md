@@ -20,6 +20,7 @@
 * A message with Undo has a line along its bottom that shrinks while the time to undo runs out
 * "Dismiss" on a message no longer also closes the message after it
 * Deleting a note doesn't ask anymore: it leaves at once and "Note deleted" is shown with Undo, and it's only deleted after 8 seconds. Bookmarks work the same, and Undo now leaves a bookmark exactly as it was instead of saving it again as a new one
+* Notes has its own address, `/notes`, like the other sections (`/` still opens it)
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it

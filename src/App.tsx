@@ -40,11 +40,13 @@ loadAppVersion();
 const DrawerNavigation = createDrawerNavigator();
 
 type RootStackScreens = {
-  [route in keyof RootStackParamList]: string;
+  [route in keyof RootStackParamList]: string | { path: string, alias: string[] };
 };
 
 const rootStackScreens: RootStackScreens = {
-  Home: "",
+  // Notes has its own address like the other sections; the app's own one ("/", which the launcher
+  // opens) opens it too
+  Home: { path: "notes", alias: [""] },
   Search: "search",
   Notebooks: "notebooks",
   Login: "login",

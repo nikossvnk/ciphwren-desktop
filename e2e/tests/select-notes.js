@@ -28,10 +28,10 @@ run(async () => {
   const path = () => new URL(A.p.url()).pathname;
 
   await longPress(names[0]);
-  check("narrow: a long press selects a note, without opening it", await selected(names[0]) && path() === "/", path());
+  check("narrow: a long press selects a note, without opening it", await selected(names[0]) && path() === "/notes", path());
   check("narrow: the bar says how many are selected", await A.has("1 selected"));
   await row(names[1]).click(); await A.wait(800);
-  check("narrow: then a press selects another one", await selected(names[1]) && path() === "/" && await A.has("2 selected"));
+  check("narrow: then a press selects another one", await selected(names[1]) && path() === "/notes" && await A.has("2 selected"));
   await row(names[1]).click(); await A.wait(800);
   check("narrow: and pressed again it's not selected", !(await selected(names[1])) && await A.has("1 selected"));
   await A.btn(/^clear selection$/i).click(); await A.wait(800);

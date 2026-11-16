@@ -63,7 +63,7 @@ run(async () => {
   // (it's deleted when the message with Undo goes away)
   await bar("Delete").click(); await A.wait(13000);
   check("delete deletes the note", (await api.noteNames()).includes("DELETED:Apple " + n), (await api.noteNames()).filter((x) => x.endsWith("Apple " + n)));
-  check("and goes back to the list", path() === "/", path());
+  check("and goes back to the list", path() === "/notes", path());
 
   // Narrow screens too (the note is opened by its address, as the list is long)
   await A.p.locator(`[data-testid="notes-column"] a[href*="/note/"] [aria-label="Zebra ${n}"] >> visible=true`).first().click(); await A.wait(2000);

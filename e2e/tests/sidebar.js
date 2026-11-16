@@ -72,7 +72,7 @@ run(async () => {
   await note("Third " + n).click(); await A.wait(2500);
   check("another note opens in its place", (await A.viewerText()).includes("the third note") && await noteSelected("Third " + n));
   await A.back();
-  check("back closes it, not going to the note before", path() === "/" && (await A.p.getByText("No note open").locator("visible=true").count()) === 1, path());
+  check("back closes it, not going to the note before", path() === "/notes" && (await A.p.getByText("No note open").locator("visible=true").count()) === 1, path());
 
   // Changes are saved when going to another note
   await note("Second " + n).click(); await A.wait(2500);
