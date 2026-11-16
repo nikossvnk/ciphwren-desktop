@@ -21,7 +21,7 @@ run(async () => {
   const A = await session(b, "A");
   const { p, btn, vis, wait } = A;
   await A.login(account);
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
   await collectionOf(etebase, "etebase.md.note");
   const nb = `Colours ${n}`;
   const dialog = p.locator('[data-testid="new-collection"] >> visible=true');

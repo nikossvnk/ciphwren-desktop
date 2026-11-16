@@ -221,10 +221,18 @@ exports.session = async (browser, tag, viewport = { width: 900, height: 700 }, o
     await vis('input[aria-label="Password"]').fill(account.password);
     await vis('input[aria-label="Server URL"]').fill(config.serverUrl);
     await btn(/^log in$/i).click(); await wait(waitMs);
+    // The app starts on the calendar (`landedOn` keeps where it landed); the tests go on from the
+    // notes. A new account stays on the first-run wizard, for `finish()`.
     s.landedOn = new URL(p.url()).pathname;
-    if (s.landedOn === "/calendar") {
+    if (s.landedOn !== "/account-wizard") {
       await p.goto(config.appUrl + "/notes"); await wait(4000);
     }
+  };
+  // Ends the first-run wizard of a new account, which goes to the calendar, and goes on from the notes
+  s.finish = async () => {
+    await btn(/^finish$/i).click(); await wait(6000);
+    s.landedOn = new URL(p.url()).pathname;
+    await p.goto(config.appUrl + "/notes"); await wait(4000);
   };
   // Opens a note or a notebook by its name
   // (scrolling the list to it, which only has the rows it scrolled to)

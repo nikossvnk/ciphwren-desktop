@@ -40,7 +40,7 @@ run(async () => {
 
   await A.login(account);
   check("the screen after logging in has its title as a heading", await p.getByRole("heading", { name: "Set Up Your Account" }).count() === 1, await A.text());
-  await A.btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
 
   // 500 contacts from one file
   const count = 500;

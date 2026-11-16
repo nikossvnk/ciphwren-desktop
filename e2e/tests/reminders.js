@@ -39,7 +39,7 @@ run(async () => {
   const sidebar = p.locator('[data-testid="sidebar"] >> visible=true');
   const side = (label) => sidebar.getByRole("button", { name: label, exact: true });
   await A.login(account);
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
   const calendar = await collectionOf(etebase, types.calendar);
   const tasks = await collectionOf(etebase, types.tasks);
   const now = new Date();

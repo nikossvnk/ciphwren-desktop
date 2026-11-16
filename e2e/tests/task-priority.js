@@ -28,7 +28,7 @@ run(async () => {
   const A = await session(b, "A", { width: 1440, height: 900 });
   const { p, vis, wait } = A;
   await A.login({ username, password });
-  await A.btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
 
   // Two tasks from another app, due today: the one without a priority was made first
   const col = await collectionOf(etebase, "etebase.vtodo");

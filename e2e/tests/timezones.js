@@ -54,7 +54,7 @@ run(async () => {
   const A = await session(b, "A", { width: 1440, height: 900 }, { timezoneId: "America/Indiana/Indianapolis" });
   const sideRow = (s, label) => s.p.locator('[data-testid="sidebar"] >> visible=true').getByRole("button", { name: label, exact: true });
   await A.login({ username, password });
-  await A.btn(/^finish$/i).click(); await A.wait(6000);
+  await A.finish();
   await sideRow(A, "Calendar").click(); await A.wait(3000);
 
   const title = `Indiana call ${n}`;

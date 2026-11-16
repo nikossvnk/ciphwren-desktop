@@ -64,7 +64,7 @@ run(async () => {
   const choice = p.locator('[data-testid="repeat-choice"] >> visible=true');
 
   await A.login({ username, password });
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
 
   // A standup every day for ten days at 9:00 in Berlin, made by another app: the time of the second
   // day was moved to 14:00 (and given another title), and the one of the third was cancelled. The

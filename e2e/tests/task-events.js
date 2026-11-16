@@ -31,7 +31,7 @@ run(async () => {
   const sidebar = p.locator('[data-testid="sidebar"] >> visible=true');
   const side = (label) => sidebar.getByRole("button", { name: label, exact: true });
   await A.login(account);
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
   const myCalendar = await collectionOf(etebase, types.calendar);
   const taskList = await collectionOf(etebase, types.tasks);
   // A second calendar, to choose
