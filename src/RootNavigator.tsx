@@ -48,6 +48,7 @@ import { RootStackParamList, accountScreens, pimScreens } from "./RootStackParam
 import MenuButton from "./widgets/MenuButton";
 import Appbar from "./widgets/Appbar";
 import Snackbar from "./widgets/Snackbar";
+import { PendingDeletesBar } from "./pendingDeletes";
 import Sidebar, { SidebarShowButton } from "./components/Sidebar";
 import NotesColumn from "./components/NotesColumn";
 import { SearchProvider, useWideLayout, useWideNavigation } from "./components/WideLayout";
@@ -329,6 +330,7 @@ export default React.memo(function RootNavigator() {
             </Stack.Navigator>
           </View>
           <GlobalMessages />
+          <PendingDeletesBar />
         </View>
       </DialogsProvider>
     </SearchProvider>

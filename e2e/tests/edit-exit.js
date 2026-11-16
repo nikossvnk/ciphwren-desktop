@@ -1,5 +1,6 @@
-// Wide screens: editing ends with escape, or with a click around the note (not in it). And the
-// message after moving a note to another notebook can be read, over the columns.
+// Wide screens: editing ends with escape, or with a click around the note (not in it). Deleting the
+// note from the editor can be undone. And the message after moving a note to another notebook can be
+// read, over the columns.
 const { launch, session, run, check, api, unique } = require("../lib");
 run(async () => {
   const n = unique();
@@ -20,16 +21,13 @@ run(async () => {
     await A.p.keyboard.press("Escape"); await A.wait(1000);
     check(`${scheme}: escape ends editing`, !(await inEditor()) && (await A.viewerText()).includes("a note to edit"));
 
-    // Escape closes a dialog over the editor (its cancel), and only the dialog
+    // Deleting from the editor doesn't ask: the note leaves, and Undo brings it back, never deleted
     await edit();
-    await A.btn(/^delete$/i).click(); await A.wait(800);
-    const dialog = A.p.getByText("Are you sure you would like to delete this note?").locator("visible=true");
-    check(`${scheme}: the delete dialog opens over the editor`, await dialog.count() === 1);
-    await A.p.keyboard.press("Escape"); await A.wait(1000);
-    // (the note is still there, not deleted: an older copy is deleted, as moving it below makes a new one)
-    check(`${scheme}: escape closes it, without deleting`, await dialog.count() === 0 && (await api.noteNames()).includes(name));
-    check(`${scheme}: and keeps editing`, await inEditor());
-    await A.p.keyboard.press("Escape"); await A.wait(1000);
+    await A.btn(/^delete$/i).click(); await A.wait(1500);
+    check(`${scheme}: delete in the editor shows "Note deleted" with Undo`, await A.p.getByText("Note deleted").locator("visible=true").count() === 1);
+    await A.btn(/^undo$/i).click(); await A.wait(9000);
+    check(`${scheme}: undo keeps the note, also on the server`, (await api.noteNames()).includes(name));
+    await A.open(name);
 
     await edit();
     await A.p.locator('textarea[aria-label="Content"] >> visible=true').click(); await A.wait(800);

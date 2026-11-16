@@ -60,8 +60,8 @@ run(async () => {
   await bar("Save").click(); await A.wait(5000);
   const saved = await api.noteContent(notebook, "Apple " + n);
   check("save saves it to the server", saved === "added first, changed", saved);
-  await bar("Delete").click(); await A.wait(1000);
-  await A.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await A.wait(5000);
+  // (it's deleted when the message with Undo goes away)
+  await bar("Delete").click(); await A.wait(13000);
   check("delete deletes the note", (await api.noteNames()).includes("DELETED:Apple " + n), (await api.noteNames()).filter((x) => x.endsWith("Apple " + n)));
   check("and goes back to the list", path() === "/", path());
 

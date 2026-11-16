@@ -173,13 +173,26 @@ run(async () => {
   check("a list of the sidebar shows its bookmarks only", (await list.innerText()).includes(`Spreewald ${n}`) && !(await list.innerText()).includes(pageTitle));
   await side("All bookmarks").click(); await wait(1000);
 
-  // Deleting, and undoing it
-  await list.getByRole("button", { name: `Delete Manual ${n}` }).click(); await wait(2500);
-  check("deleting asks nothing, it's deleted on the server", await waitFor(async () => !(await lists(etebase)).some((l) => l.bookmarks.some((x) => x.name === `Manual ${n}`))));
+  // Deleting, and undoing it: it leaves the list at once, and is only deleted on the server when the
+  // message with Undo goes away (8 seconds), so Undo changes nothing on the server
+  const itemsNamed = async (name) => {
+    const colMgr = etebase.getCollectionManager();
+    let ret = 0;
+    for (const col of (await colMgr.list(bookmarkType, { limit: 50 })).data) {
+      ret += (await colMgr.getItemManager(col).list({ limit: 200 })).data.filter((x) => x.getMeta().name === name).length;
+    }
+    return ret;
+  };
+  const manualItems = await itemsNamed(`Manual ${n}`);
+  await list.getByRole("button", { name: `Delete Manual ${n}` }).click(); await wait(1500);
+  check("deleting asks nothing, it leaves the list at once", await list.getByRole("button", { name: `Delete Manual ${n}` }).count() === 0);
   check("and an Undo message is shown", (await p.getByRole("button", { name: "Undo" }).count()) === 1);
-  await p.getByRole("button", { name: "Undo" }).click(); await wait(2500);
-  check("undo puts it back on the server, as it was", await waitFor(async () => (await lists(etebase)).some((l) => (l.name === "Work links") &&
-    l.bookmarks.some((x) => (x.name === `Manual ${n}`) && (x.url === `https://example.com/manual-${n}`)))));
+  check("it isn't deleted on the server yet", (await lists(etebase)).some((l) => l.bookmarks.some((x) => x.name === `Manual ${n}`)));
+  await p.getByRole("button", { name: "Undo" }).click(); await wait(1500);
+  check("undo shows it again", await list.getByRole("button", { name: `Delete Manual ${n}` }).count() === 1);
+  await wait(8000);
+  check("and it's never deleted on the server, nor saved again as a new one", (await lists(etebase)).some((l) => (l.name === "Work links") &&
+    l.bookmarks.some((x) => (x.name === `Manual ${n}`) && (x.url === `https://example.com/manual-${n}`))) && (await itemsNamed(`Manual ${n}`)) === manualItems);
 
   // Several at once
   await list.getByRole("checkbox", { name: `Select ${pageTitle} & more` }).click();
@@ -203,18 +216,16 @@ run(async () => {
   }));
   await list.getByRole("checkbox", { name: `Select ${pageTitle} & more` }).click();
   await list.getByRole("checkbox", { name: `Select Manual ${n}` }).click(); await wait(300);
-  await bar.getByRole("button", { name: "Delete" }).click(); await wait(2500);
-  check("deleting them together, on the server", await waitFor(async () => !(await lists(etebase)).some((l) => l.bookmarks.some((x) => [pageUrl, `https://example.com/manual-${n}`].includes(x.url)))));
-  check("with one Undo for both", (await p.innerText("body")).includes("2 bookmarks deleted"));
-  await p.getByRole("button", { name: "Undo" }).click(); await wait(3000);
-  check("which puts both back, with where they were saved from", await waitFor(async () => (await lists(etebase)).flatMap((l) => l.bookmarks).filter((x) => [pageUrl, `https://example.com/manual-${n}`].includes(x.url) &&
-    (x.savedFrom === "computer")).length === 2));
+  await bar.getByRole("button", { name: "Delete" }).click(); await wait(1500);
+  check("deleting them together, with one Undo for both", (await p.innerText("body")).includes("2 bookmarks deleted"));
+  check("they leave the list at once", await list.getByRole("button", { name: `Delete Manual ${n}` }).count() === 0);
+  check("and are deleted on the server when the message goes away", await waitFor(async () => !(await lists(etebase)).some((l) => l.bookmarks.some((x) => [pageUrl, `https://example.com/manual-${n}`].includes(x.url)))));
   check("the Spreewald bookmark still says it was saved from Android after being tagged", (await lists(etebase)).flatMap((l) => l.bookmarks).some((x) => (x.name === `Spreewald ${n}`) && (x.savedFrom === "android-share")));
   const spreewald = async () => (await lists(etebase)).flatMap((l) => l.bookmarks.map((x) => ({ ...x, list: l.name }))).filter((x) => x.name === `Spreewald ${n}`);
   check("and still has the meta this app doesn't know", (await spreewald()).some((x) => x.future?.kept === n), await spreewald());
 
-  // Moving one to another list, and undoing deleting it, makes a new item, which keeps everything
-  // of its meta: also what this app doesn't know
+  // Moving one to another list makes a new item, which keeps everything of its meta: also what this
+  // app doesn't know. Undoing deleting it leaves it the same item.
   const keptAll = async (listName) => {
     const found = await spreewald();
     return (found.length === 1) && (found[0].list === listName) && (found[0].future?.kept === n) && (found[0].savedFrom === "android-share") &&
@@ -224,10 +235,12 @@ run(async () => {
   await bar.getByRole("button", { name: "Move to…" }).click(); await wait(500);
   await p.getByRole("menuitem", { name: "Bookmarks" }).click(); await wait(3000);
   check("a moved bookmark keeps the meta this app doesn't know, on the server", await waitFor(() => keptAll("Bookmarks")), await spreewald());
-  await list.getByRole("button", { name: `Delete Spreewald ${n}` }).click(); await wait(2500);
-  check("(deleted)", await waitFor(async () => (await spreewald()).length === 0));
-  await p.getByRole("button", { name: "Undo" }).click(); await wait(3000);
-  check("and so does one put back by undo", await waitFor(() => keptAll("Bookmarks")), await spreewald());
+  const spreewaldItems = await itemsNamed(`Spreewald ${n}`);
+  await list.getByRole("button", { name: `Delete Spreewald ${n}` }).click(); await wait(1500);
+  check("(deleted)", await list.getByRole("button", { name: `Delete Spreewald ${n}` }).count() === 0);
+  await p.getByRole("button", { name: "Undo" }).click(); await wait(1500);
+  await wait(8000);
+  check("and undo leaves it as it was, the same item", (await keptAll("Bookmarks")) && (await itemsNamed(`Spreewald ${n}`)) === spreewaldItems, await spreewald());
   await list.getByRole("checkbox", { name: `Select Spreewald ${n}` }).click(); await wait(300);
   await bar.getByRole("button", { name: "Move to…" }).click(); await wait(500);
   await p.getByRole("menuitem", { name: "Work links" }).click(); await wait(3000);
@@ -304,7 +317,7 @@ run(async () => {
   await side("Settings: Collections").click(); await wait(3000);
   const group = p.locator('[data-testid="collections-bookmarks"] >> visible=true');
   check("Settings → Collections has the bookmark lists, with how many bookmarks are in them", (await group.innerText()).includes("Bookmark lists") &&
-    (await group.innerText()).includes("Work links") && (await group.innerText()).includes("5 bookmarks") && (await group.innerText()).includes(`Reading ${n}`), await group.innerText());
+    (await group.innerText()).includes("Work links") && (await group.innerText()).includes("3 bookmarks") && (await group.innerText()).includes(`Reading ${n}`), await group.innerText());
 
   // After a reload, from what's stored
   await p.goto(config.appUrl + "/bookmarks"); await wait(6000);

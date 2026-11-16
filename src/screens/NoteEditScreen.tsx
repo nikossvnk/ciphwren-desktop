@@ -4,7 +4,7 @@
 import * as React from "react";
 import * as Etebase from "etebase";
 import { View, ViewInstance, ViewProps, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, TextInputInstance, GestureResponderEvent } from "react-native";
-import { Paragraph, Text, TouchableRipple } from "react-native-paper";
+import { Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { fonts, useTheme } from "../theme";
 import { useNavigation, RouteProp } from "@react-navigation/native";
@@ -27,7 +27,7 @@ import { isPinned, moveNote, nameFromContent, noteName, openEditors, setPinned, 
 import { requestSync, saveItemsLocally } from "../sync/SyncManager";
 import { loadCollection } from "../cached";
 import LoadingIndicator from "../widgets/LoadingIndicator";
-import ConfirmationDialog from "../widgets/ConfirmationDialog";
+import { deleteLater } from "../pendingDeletes";
 import NotFound from "../widgets/NotFound";
 import AppbarButton from "../widgets/AppbarButton";
 import { dialogOpen, fontFamilies } from "../helpers";
@@ -78,7 +78,6 @@ export default function NoteEditScreen(props: PropsType) {
   ));
   // A new note starts with writing its title
   const [isNew] = React.useState(() => newNotes.has(itemUid));
-  const [noteDeleteDialogShow, setNoteDeleteDialogShow] = React.useState(false);
   const dispatch = useAsyncDispatch();
   const syncDispatch = useDispatch();
   const syncItems = useSelector((state: StoreState) => state.sync.items);
@@ -172,7 +171,7 @@ export default function NoteEditScreen(props: PropsType) {
           viewMode={viewMode}
           setViewMode={setLastViewMode}
           onSave={onSave}
-          onDelete={() => setNoteDeleteDialogShow(true)}
+          onDelete={onDelete}
           onShare={onShare}
           onHistory={() => navigation.navigate("ItemHistory", { colUid, itemUid })}
           pinned={!!cacheItem && isPinned(cacheItem)}
@@ -281,6 +280,17 @@ export default function NoteEditScreen(props: PropsType) {
     titleRef.current = title;
     changed_();
     setTitle_(title);
+  }
+
+  // Deletes it without asking: "Note deleted" with Undo is shown (see pendingDeletes.tsx). What was
+  // typed is saved first, so that Undo brings it back too.
+  async function onDelete() {
+    persistItem.cancel();
+    if (dirtyRef.current) {
+      await saveLocally();
+    }
+    await deleteLater(etebase!, "note", [`${colUid}/${itemUid}`]);
+    goUp(navigation, props.route);
   }
 
   // Moves the note to another notebook, and shows it there
@@ -494,27 +504,6 @@ export default function NoteEditScreen(props: PropsType) {
           </Pressable>
         </>
       )}
-      <ConfirmationDialog
-        title="Delete Note"
-        visible={noteDeleteDialogShow}
-        onOk={async () => {
-          const { col, itemMgr } = loadCollection(etebase, colUid);
-          const item = itemMgr.cacheLoad(cacheItem.cache);
-
-          const meta = item.getMeta();
-          meta.mtime = (new Date()).getTime();
-          item.setMeta(meta);
-          item.delete(true);
-
-          persistItem.cancel();
-          dirtyRef.current = false;
-          await saveItemsLocally(etebase, col, itemMgr, [item]);
-          goUp(navigation, props.route);
-        }}
-        onCancel={() => setNoteDeleteDialogShow(false)}
-      >
-        <Paragraph>Are you sure you would like to delete this note?</Paragraph>
-      </ConfirmationDialog>
     </>
   );
 }

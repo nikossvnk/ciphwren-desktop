@@ -14,8 +14,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useCredentials } from "../credentials";
 import { useSyncGate } from "../SyncGate";
-import { popMessage, pushMessage, setSettings } from "../store/actions";
-import { store, StoreState } from "../store";
+import { pushMessage, setSettings } from "../store/actions";
+import { StoreState } from "../store";
 import { RootStackParamList } from "../RootStackParamList";
 import { safeExternalUrl } from "../helpers";
 import { fonts, useTheme } from "../theme";
@@ -23,10 +23,10 @@ import * as C from "../constants";
 import Link from "../widgets/Link";
 import Menu from "../widgets/Menu";
 import MenuItem from "../widgets/MenuItem";
-import Snackbar from "../widgets/Snackbar";
+import { deleteLater } from "../pendingDeletes";
 import {
-  allTags, Bookmark, BookmarkData, bookmarksFrom, bookmarksSelector, bookmarkTitle, comparableUrl, createBookmark, deleteBookmark,
-  domainOf, enteredUrl, fetchTitle, findUrl, isValidUrl, normalizeTag, normalizeUrl, restoreBookmark, savedFromLabel, siteLetter, tagBookmarks,
+  allTags, Bookmark, BookmarkData, bookmarksFrom, bookmarksSelector, bookmarkTitle, comparableUrl, createBookmark,
+  domainOf, enteredUrl, fetchTitle, findUrl, isValidUrl, normalizeTag, normalizeUrl, savedFromLabel, siteLetter, tagBookmarks,
   updateBookmark, withoutTracking,
 } from "../bookmarks";
 import { usePimCollections } from "./data";
@@ -640,7 +640,6 @@ export default function BookmarksScreen(props: { route: RouteProp<RootStackParam
   const [selected, setSelected] = React.useState<string>();
   const [creating, setCreating] = React.useState<{ url: string, n: number }>();
   const [checked, setChecked] = React.useState<Set<string>>(() => new Set());
-  const [deleted, setDeleted] = React.useState<Bookmark[]>([]);
   const [listWidth, setListWidth] = React.useState(800);
 
   // Opened for a bookmark (e.g. from the changes of a list), or to make one
@@ -697,28 +696,14 @@ export default function BookmarksScreen(props: { route: RouteProp<RootStackParam
     return true;
   }
 
+  // Deletes them without asking: "Bookmark deleted" with Undo is shown, see pendingDeletes.tsx
   async function remove(bookmarks: Bookmark[]) {
-    for (const x of bookmarks) {
-      await deleteBookmark(etebase, x);
-    }
     const keys = new Set(bookmarks.map(keyOf));
     setChecked((x) => new Set([...x].filter((k) => !keys.has(k))));
     if (selected && keys.has(selected)) {
       setSelected(undefined);
     }
-    // The Undo takes the place of the app's messages (e.g. "Bookmark saved"), which would cover it
-    for (let i = store.getState().messages.size; i > 0; i--) {
-      dispatch(popMessage() as any);
-    }
-    setDeleted(bookmarks);
-  }
-
-  async function undo() {
-    const bookmarks = deleted;
-    setDeleted([]);
-    for (const x of bookmarks) {
-      await restoreBookmark(etebase, x);
-    }
+    await deleteLater(etebase, "bookmark", keys);
   }
 
   async function move(colUid: string) {
@@ -768,24 +753,10 @@ export default function BookmarksScreen(props: { route: RouteProp<RootStackParam
     />
   );
 
-  const undoBar = (
-    <Snackbar
-      visible={deleted.length > 0}
-      onDismiss={() => setDeleted([])}
-      duration={8000}
-      zIndex={5}
-      countdown
-      action={{ label: "Undo", onPress: undo }}
-    >
-      {(deleted.length > 1) ? `${deleted.length} bookmarks deleted` : "Bookmark deleted"}
-    </Snackbar>
-  );
-
   if (!wide && panelOpen) {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">{panel}</ScrollView>
-        {undoBar}
       </View>
     );
   }
@@ -907,7 +878,6 @@ export default function BookmarksScreen(props: { route: RouteProp<RootStackParam
           {panel}
         </ScrollView>
       )}
-      {undoBar}
     </View>
   );
 }

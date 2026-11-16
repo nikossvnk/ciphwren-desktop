@@ -146,6 +146,9 @@ More options (port, browser) and how releases are made are in `desktop/README.md
   modified.
 - A right click on a note, or on the selected ones, pins or unpins them, moves them to another
   notebook or deletes them.
+- **Deleting** doesn't ask: the note leaves the list at once, and "Note deleted" is shown with Undo
+  for 8 seconds. It's only deleted when that goes away, so Undo leaves it exactly as it was (with its
+  history). A note deleted just before the app is closed stays.
 - **Editor shortcuts:** Ctrl+B bold, Ctrl+I italic, Ctrl+E code, Ctrl+K link, Ctrl+Shift+X
   strikethrough, Ctrl+Shift+7/8/9 numbered, bulleted and check lists, Ctrl+Shift+. quote and
   Ctrl+Shift+H heading. Undo takes them back, and "`" puts the selected text in code.
@@ -173,7 +176,8 @@ More options (port, browser) and how releases are made are in `desktop/README.md
 - Next to the list the chosen bookmark is edited (link, title, note, tags, list), with when and
   where it was saved: on Android, shared to the Android app, on a computer, or imported. "New
   bookmark" opens it empty.
-- Deleting shows an Undo message instead of asking.
+- Deleting works the same as for notes: "Bookmark deleted" with Undo for 8 seconds, and only then
+  is it deleted.
 - The bookmark lists are in the sidebar, with "All bookmarks".
 - They're the same bookmarks as in Ciphwren Notes on Android (the same collection type,
   `etebase.bookmark`, and data), so the ones saved on the phone are the ones here.

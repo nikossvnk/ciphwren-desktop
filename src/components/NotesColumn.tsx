@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useDateFormats } from "../pim/format";
 import { FlatList, Platform, StyleSheet, View } from "react-native";
-import { Menu, Paragraph, Text, TouchableRipple } from "react-native-paper";
+import { Menu, Text, TouchableRipple } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import * as Etebase from "etebase";
 
@@ -12,8 +12,8 @@ import { StoreState } from "../store";
 import { pushMessage, setSettings } from "../store/actions";
 import { useCredentials } from "../credentials";
 import { useSyncGate } from "../SyncGate";
-import { deleteNotes, isPinned, moveNotes, setPinned, untitled } from "../notes";
-import ConfirmationDialog from "../widgets/ConfirmationDialog";
+import { isPinned, moveNotes, setPinned, untitled } from "../notes";
+import { deleteLater } from "../pendingDeletes";
 import { useNoteSearch } from "../search";
 import { fonts, useTheme } from "../theme";
 import Link from "../widgets/Link";
@@ -101,8 +101,6 @@ export default function NotesColumn() {
   const resize = useNotesColumnResize();
   // The notes selected with ctrl (or cmd) and a click, to pin or delete them
   const [selection, setSelection] = React.useState<Set<string>>(() => new Set());
-  // The notes the dialog asks about deleting
-  const [deleting, setDeleting] = React.useState<Set<string>>();
   // The right-click menu: the notes it's for, where it is, and whether it lists the notebooks to move them to
   const [menu, setMenu] = React.useState<{ notes: Set<string>, x: number, y: number, moving?: boolean }>();
   const selecting = selection.size > 0;
@@ -150,14 +148,14 @@ export default function NotesColumn() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selecting]);
 
-  async function deleteChosen() {
-    const notes = deleting!;
-    await deleteNotes(etebase!, notes);
-    setDeleting(undefined);
+  // Deletes them without asking: "Note deleted" with Undo is shown, see pendingDeletes.tsx
+  async function deleteChosen(notes: Set<string>) {
+    setMenu(undefined);
     setSelection((prev) => new Set([...prev].filter((x) => !notes.has(x))));
     if (currentNote && notes.has(currentNote)) {
       navigate("Home");
     }
+    await deleteLater(etebase!, "note", notes);
   }
 
   // A right click on a note opens the menu, for the selected notes when it's one of them
@@ -242,7 +240,7 @@ export default function NotesColumn() {
         </View>
         {selecting && (
           <>
-            <SelectionButtons selection={selection} allPinned={allPinned} onPinned={() => setSelection(new Set())} onDelete={() => setDeleting(new Set(selection))} />
+            <SelectionButtons selection={selection} allPinned={allPinned} onPinned={() => setSelection(new Set())} onDelete={() => deleteChosen(new Set(selection))} />
             <AppbarButton icon="close" title="Clear selection" onPress={() => setSelection(new Set())} />
           </>
         )}
@@ -269,14 +267,6 @@ export default function NotesColumn() {
           />
         )}
       </View>
-      <ConfirmationDialog
-        title="Delete Notes"
-        visible={!!deleting}
-        onOk={deleteChosen}
-        onCancel={() => setDeleting(undefined)}
-      >
-        <Paragraph>{`Are you sure you would like to delete ${(deleting?.size === 1) ? "this note" : `these ${deleting?.size} notes`}?`}</Paragraph>
-      </ConfirmationDialog>
       {menu && (
         <Menu visible onDismiss={() => setMenu(undefined)} anchor={{ x: menu.x, y: menu.y }}>
           {(menu.moving) ? moveTargets.map((x) => (
@@ -306,10 +296,7 @@ export default function NotesColumn() {
               <Menu.Item
                 title={(menu.notes.size === 1) ? "Delete" : `Delete ${menu.notes.size} notes`}
                 leadingIcon="delete-outline"
-                onPress={() => {
-                  setDeleting(menu.notes);
-                  setMenu(undefined);
-                }}
+                onPress={() => deleteChosen(menu.notes)}
               />
             </>
           )}

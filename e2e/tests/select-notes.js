@@ -43,8 +43,8 @@ run(async () => {
   // Deleting two of them
   await longPress(names[0]);
   await row(names[1]).click(); await A.wait(800);
-  await A.btn(/^delete selected$/i).click(); await A.wait(800);
-  await A.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await A.wait(6000);
+  // (they're deleted when the message with Undo goes away)
+  await A.btn(/^delete selected$/i).click(); await A.wait(12000);
   check("narrow: deleting the selected notes deletes them on the server",
     JSON.stringify(await onServer(names[0])) === JSON.stringify(["DELETED:" + names[0]]) &&
     JSON.stringify(await onServer(names[1])) === JSON.stringify(["DELETED:" + names[1]]), [await onServer(names[0]), await onServer(names[1])]);
@@ -75,8 +75,7 @@ run(async () => {
 
   // Deleting the open note with another one goes back to no note open
   await note(names[2]).click({ modifiers: ["Control"] }); await W.wait(800);
-  await W.btn(/^delete selected$/i).click(); await W.wait(800);
-  await W.p.getByRole("button", { name: /^ok$/i }).locator("visible=true").last().click(); await W.wait(6000);
+  await W.btn(/^delete selected$/i).click(); await W.wait(12000);
   check("wide: deleting them deletes them on the server",
     JSON.stringify(await onServer(names[2])) === JSON.stringify(["DELETED:" + names[2]]) &&
     JSON.stringify(await onServer(names[3])) === JSON.stringify(["DELETED:" + names[3]]), [await onServer(names[2]), await onServer(names[3])]);

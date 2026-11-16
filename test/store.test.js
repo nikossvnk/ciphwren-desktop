@@ -1,12 +1,13 @@
 // The store: saving many items is one change of it (each change makes the screens look at it again),
-// and the notes part's view of the cache stays the same while no notebook or note changed.
+// the notes part's view of the cache stays the same while no notebook or note changed, and the notes
+// and bookmarks deleted a moment ago (which Undo can still bring back) look deleted.
 require("./register");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { Map: ImmutableMap } = require("immutable");
 
 const { store } = require("../src/store");
-const { notesView } = require("../src/store/construct");
+const { notesView, shownAsDeleted } = require("../src/store/construct");
 const { SyncManager, saveItemsLocally } = require("../src/sync/SyncManager");
 
 test("saving 200 items changes the store a few times, and they're all saved and queued to be uploaded", async () => {
@@ -57,4 +58,31 @@ test("the notes part's view of the cache stays the same while no notebook or not
   const renamed = { ...noteSaved, collections: noteSaved.collections.set("nb", { ...notebook, meta: { name: "Notes" } }) };
   assert.equal(notesView(renamed).collections.get("nb").meta.name, "Notes");
   assert.equal(notesView(renamed).items, after.items);
+});
+
+test("the notes and bookmarks waiting to be deleted look deleted, and come back when they no longer wait", () => {
+  const notebook = { cache: "nb", meta: { name: "My Notes" }, collectionType: "etebase.md.note" };
+  const other = { cache: "nb2", meta: { name: "Work" }, collectionType: "etebase.md.note" };
+  const note = (name) => ({ cache: name, meta: { name }, isDeleted: false });
+  const cache = {
+    collections: ImmutableMap({ nb: notebook, nb2: other }),
+    items: ImmutableMap({ nb: ImmutableMap({ a: note("a"), b: note("b") }), nb2: ImmutableMap({ c: note("c") }) }),
+  };
+  const before = notesView(cache);
+
+  const waiting = notesView(cache, ["nb/a", "bookmarks/x"]);
+  assert.equal(waiting.items.getIn(["nb", "a"]).isDeleted, true);
+  assert.equal(waiting.items.getIn(["nb", "b"]).isDeleted, false);
+  // (the other notebook stays the same object, so its screens don't draw again)
+  assert.equal(waiting.items.get("nb2"), before.items.get("nb2"));
+  // (and the cache itself isn't changed: that's what is deleted when the time is up)
+  assert.equal(cache.items.getIn(["nb", "a"]).isDeleted, false);
+
+  const undone = notesView(cache, []);
+  assert.equal(undone.items.getIn(["nb", "a"]).isDeleted, false);
+
+  // The same for the bookmarks
+  const bookmarks = ImmutableMap({ list: ImmutableMap({ x: note("x") }) });
+  assert.equal(shownAsDeleted(bookmarks, ["nb/a", "list/x"]).getIn(["list", "x"]).isDeleted, true);
+  assert.equal(shownAsDeleted(bookmarks, []), bookmarks);
 });
