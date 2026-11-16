@@ -17,7 +17,7 @@ run(async () => {
   const b = await launch();
   const A = await session(b, "A", { width: 1440, height: 900 });
   await A.login({ username, password });
-  await A.btn(/^finish$/i).click(); await A.wait(6000);
+  await A.finish();
   const path = () => new URL(A.p.url()).pathname;
 
   // The sections, by their place in the sidebar

@@ -60,7 +60,8 @@ run(async () => {
   // Logging in to a new account opens the wizard
   await A.login({ username, password });
   check("the wizard offers the four collections", await A.has("My Notes, My Calendar, My Tasks, My Contacts"), await A.text());
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
+  check("finishing it opens the calendar", A.landedOn === "/calendar", A.landedOn);
   check("and creates them on the server", await waitForServer(etebase, (s) => (
     s.some((x) => (x.type === types.notes) && (x.name === "My Notes")) &&
     s.some((x) => (x.type === types.calendar) && (x.name === "My Calendar")) &&

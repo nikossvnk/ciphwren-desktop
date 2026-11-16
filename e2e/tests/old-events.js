@@ -22,7 +22,7 @@ run(async () => {
   const A = await session(b, "A", { width: 1440, height: 900 });
   const { p, wait } = A;
   await A.login({ username, password });
-  await A.btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
 
   const col = await collectionOf(etebase, "etebase.vevent");
   const itemMgr = etebase.getCollectionManager().getItemManager(col);

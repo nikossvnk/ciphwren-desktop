@@ -7,6 +7,7 @@ run(async () => {
   const b = await launch();
   const A = await session(b, "A");
   await A.login();
+  check("logging in opens the calendar, at /calendar", A.landedOn === "/calendar", A.landedOn);
   // Where we are: the path, and whether the top-most back or menu button is shown
   const where = () => A.p.evaluate(() => {
     const top = (name) => [...document.querySelectorAll(`[aria-label="${name}"]`)].some((e) => {

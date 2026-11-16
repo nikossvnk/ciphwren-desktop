@@ -71,7 +71,7 @@ run(async () => {
   const shown = async () => (await vis('[data-testid="history-version"]').innerText()).replace(/\s+/g, " ");
 
   await A.login({ username, password });
-  await btn(/^finish$/i).click(); await wait(6000);
+  await A.finish();
 
   // A note saved three times: the second added a line and changed one, the third changed the title
   const notes = await collectionOf(etebase, types.notes);

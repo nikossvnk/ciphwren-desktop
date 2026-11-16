@@ -78,7 +78,7 @@ run(async () => {
   check("and the notebooks have them once", Object.keys(await serverNotes(first)).length === 2 && Object.keys(await serverNotes(second)).length === 1);
 
   // The app shows them
-  await A.p.goto(config.appUrl + "/"); await A.wait(6000);
+  await A.p.goto(config.appUrl + "/notes"); await A.wait(6000);
   await A.open(`One ${n}`);
   check("an imported note opens and shows its text", (await A.viewerText()).includes("The first imported note"));
   await b.close();
