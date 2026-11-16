@@ -5,7 +5,6 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Platform, View } from "react-native";
-import { Snackbar, Text } from "react-native-paper";
 
 import { SyncManager, requestSync } from "./sync/SyncManager";
 
@@ -48,6 +47,7 @@ import { StoreState } from "./store";
 import { RootStackParamList, accountScreens, pimScreens } from "./RootStackParamList";
 import MenuButton from "./widgets/MenuButton";
 import Appbar from "./widgets/Appbar";
+import Snackbar from "./widgets/Snackbar";
 import Sidebar, { SidebarShowButton } from "./components/Sidebar";
 import NotesColumn from "./components/NotesColumn";
 import { SearchProvider, useWideLayout, useWideNavigation } from "./components/WideLayout";
@@ -337,7 +337,6 @@ export default React.memo(function RootNavigator() {
 
 function GlobalMessages() {
   const dispatch = useDispatch();
-  const theme = useTheme();
   const message = useSelector((state: StoreState) => state.messages.first(undefined));
 
   function handleClose() {
@@ -351,16 +350,10 @@ function GlobalMessages() {
       visible={!!message}
       duration={5000}
       onDismiss={handleClose}
-      // Over the columns of wide screens (and not under them), with colors that read in both themes
-      wrapperStyle={{ zIndex: 10 }}
-      style={{ backgroundColor: theme.colors.chipActive }}
-      action={{
-        label: "Dismiss",
-        onPress: handleClose,
-        textColor: theme.colors.onChipActiveAccent,
-      }}
+      zIndex={10}
+      action={{ label: "Dismiss", onPress: handleClose }}
     >
-      <Text style={{ color: theme.colors.onChipActive }}>{message?.message}</Text>
+      {message?.message}
     </Snackbar>
   );
 }

@@ -41,8 +41,10 @@ export interface Theme extends PaperTheme {
     field: string;
     chipActive: string;
     onChipActive: string;
-    // (e.g. the button of a message, which is on chipActive)
-    onChipActiveAccent: string;
+    // Messages at the bottom (snackbars): the bar, its text and its button
+    snackbar: string;
+    onSnackbar: string;
+    snackbarAction: string;
     // Under the chosen row of a list (a tint of the accent) and its outline
     accentTint: string;
     accentRing: string;
@@ -125,7 +127,9 @@ export const LightTheme: Theme = {
     field: brand.surfaceAlt,
     chipActive: brand.navy,
     onChipActive: brand.white,
-    onChipActiveAccent: brand.cyan,
+    snackbar: brand.navy,
+    onSnackbar: brand.white,
+    snackbarAction: brand.cyan,
     accentTint: brand.ice,
     accentRing: alpha(brand.cyan, 0.5),
     highlight: alpha(brand.cyan, 0.28),
@@ -182,7 +186,10 @@ export const DarkTheme: Theme = {
     field: brand.darkElevated,
     chipActive: brand.ice,
     onChipActive: brand.navy,
-    onChipActiveAccent: brand.teal,
+    // A lighter navy than the columns, not the light bar of the inverse, which glares on dark
+    snackbar: brand.darkElevated,
+    onSnackbar: brand.ice,
+    snackbarAction: brand.cyan,
     accentTint: alpha(dark.accent, 0.16),
     accentRing: alpha(dark.accent, 0.45),
     highlight: alpha(brand.cyan, 0.35),

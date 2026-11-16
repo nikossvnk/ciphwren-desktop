@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
-import { IconButton, Menu, Snackbar, Text, TouchableRipple } from "react-native-paper";
+import { IconButton, Menu, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -15,6 +15,7 @@ import { popMessage, pushMessage, setSettings } from "../store/actions";
 import { store, StoreState, TaskSettingsType, TaskViewType } from "../store";
 import LoadingIndicator from "../widgets/LoadingIndicator";
 import ConfirmationDialog from "../widgets/ConfirmationDialog";
+import Snackbar from "../widgets/Snackbar";
 import { fonts, useTheme } from "../theme";
 import * as C from "../constants";
 import { TaskStatusType, TaskType, timeValue, utcNow } from "./pim-types";
@@ -713,13 +714,11 @@ export default function TasksScreen() {
         visible={!!justDone}
         onDismiss={() => setJustDone(undefined)}
         duration={5000}
-        wrapperStyle={{ zIndex: 5 }}
-        style={{ backgroundColor: theme.colors.chipActive }}
-        action={{ label: "Undo", onPress: undo, textColor: theme.colors.onChipActiveAccent }}
+        zIndex={5}
+        countdown
+        action={{ label: "Undo", onPress: undo }}
       >
-        <Text style={{ color: theme.colors.onChipActive }}>
-          “{justDone?.task.title}” completed{(justDone?.next) ? `, due again ${formatDue(justDone.next, fmt) ?? ""}` : ""}
-        </Text>
+        “{justDone?.task.title}” completed{(justDone?.next) ? `, due again ${formatDue(justDone.next, fmt) ?? ""}` : ""}
       </Snackbar>
     </View>
   );

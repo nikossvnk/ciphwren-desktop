@@ -16,6 +16,9 @@
 * A right click on a task has "Edit" and "Delete"
 * A note written to do so can no longer make the viewer take very long to show it (markdown-it 14.3.3)
 * The notes column of wide screens is made wider or narrower by dragging its edge, like the sidebar, and keeps its width
+* Messages at the bottom (e.g. "Bookmark deleted" with Undo) are a bar at most 560 pixels wide, centred, instead of across the whole window on wide screens, and on the dark theme they're dark navy with a cyan button instead of a light bar
+* A message with Undo has a line along its bottom that shrinks while the time to undo runs out
+* "Dismiss" on a message no longer also closes the message after it
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it

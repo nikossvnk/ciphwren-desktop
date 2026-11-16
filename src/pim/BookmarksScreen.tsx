@@ -7,7 +7,7 @@
 
 import * as React from "react";
 import { Platform, ScrollView, StyleSheet, TextInput, View, ViewInstance, useWindowDimensions } from "react-native";
-import { IconButton, Snackbar, Text, TouchableRipple } from "react-native-paper";
+import { IconButton, Text, TouchableRipple } from "react-native-paper";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +23,7 @@ import * as C from "../constants";
 import Link from "../widgets/Link";
 import Menu from "../widgets/Menu";
 import MenuItem from "../widgets/MenuItem";
+import Snackbar from "../widgets/Snackbar";
 import {
   allTags, Bookmark, BookmarkData, bookmarksFrom, bookmarksSelector, bookmarkTitle, comparableUrl, createBookmark, deleteBookmark,
   domainOf, enteredUrl, fetchTitle, findUrl, isValidUrl, normalizeTag, normalizeUrl, restoreBookmark, savedFromLabel, siteLetter, tagBookmarks,
@@ -772,11 +773,11 @@ export default function BookmarksScreen(props: { route: RouteProp<RootStackParam
       visible={deleted.length > 0}
       onDismiss={() => setDeleted([])}
       duration={8000}
-      wrapperStyle={{ zIndex: 5 }}
-      style={{ backgroundColor: theme.colors.chipActive }}
-      action={{ label: "Undo", onPress: undo, textColor: theme.colors.onChipActiveAccent }}
+      zIndex={5}
+      countdown
+      action={{ label: "Undo", onPress: undo }}
     >
-      <Text style={{ color: theme.colors.onChipActive }}>{(deleted.length > 1) ? `${deleted.length} bookmarks deleted` : "Bookmark deleted"}</Text>
+      {(deleted.length > 1) ? `${deleted.length} bookmarks deleted` : "Bookmark deleted"}
     </Snackbar>
   );
 
