@@ -79,7 +79,7 @@ run(async () => {
   check("which doesn't bring it back in the old one when the editor is left", !(await names("My Notes")).includes(gamma), await names("My Notes"));
 
   // The selected notes
-  await A.p.goto(config.appUrl + "/"); await A.wait(5000);
+  await A.p.goto(config.appUrl + "/notes"); await A.wait(5000);
   await row(delta).click({ modifiers: ["Control"] }); await A.wait(300);
   await row(epsilon).click({ modifiers: ["Control"] }); await A.wait(300);
   await row(delta).click({ button: "right" }); await A.wait(500);

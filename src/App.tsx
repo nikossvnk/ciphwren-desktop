@@ -44,9 +44,7 @@ type RootStackScreens = {
 };
 
 const rootStackScreens: RootStackScreens = {
-  // Notes has its own address like the other sections; the app's own one ("/", which the launcher
-  // opens) opens it too
-  Home: { path: "notes", alias: [""] },
+  Home: "notes",
   Search: "search",
   Notebooks: "notebooks",
   Login: "login",
@@ -58,7 +56,8 @@ const rootStackScreens: RootStackScreens = {
   NoteEdit: "notebook/:colUid/note/:itemUid",
   NoteProps: "notebook/:colUid/note/:itemUid/properties",
   NoteMove: "notebook/:colUid/note/:itemUid/move",
-  Calendar: "calendar",
+  // The app's own address ("/", which the launcher opens) opens the calendar
+  Calendar: { path: "calendar", alias: [""] },
   EventEdit: "calendar/event",
   ItemHistory: "history/:colUid/:itemUid",
   Tasks: "tasks",

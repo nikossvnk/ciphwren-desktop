@@ -146,7 +146,8 @@ export default function AccountWizardScreen() {
 
   React.useEffect(() => {
     if (!syncError && !syncGate && ranWizard) {
-      navigation.navigate("Home");
+      // (the app starts on the calendar)
+      navigation.navigate("Calendar");
     }
   }, [ranWizard, syncError, syncGate]);
 

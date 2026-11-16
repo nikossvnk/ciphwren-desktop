@@ -17,7 +17,9 @@ run(async () => {
   }
   await A.vis('input[aria-label="Server URL"]').fill(config.serverUrl);
   await A.btn(/^log in$/i).click(); await A.wait(8000);
-  check("the test server is accepted", await A.has(name));
+  check("the test server is accepted, and the app opens on the calendar", new URL(A.p.url()).pathname === "/calendar", A.p.url());
+  await A.p.goto(config.appUrl + "/notes"); await A.wait(4000);
+  check("its notes are there", await A.has(name));
   // The menu says which server the account is on (with http://, as the test server isn't encrypted)
   await A.btn(/^main menu$/i).click(); await A.wait(1000);
   const server = await A.p.locator('[aria-label^="Server: "] >> visible=true').first().getAttribute("aria-label").catch(() => "");

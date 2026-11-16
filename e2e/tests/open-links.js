@@ -59,7 +59,7 @@ run(async () => {
   check("nothing else was handed to the server", (await opened()).length === 5, await opened());
 
   // The app's own links still open in the window
-  await p.goto(config.appUrl + "/"); await wait(3000);
+  await p.goto(config.appUrl + "/notes"); await wait(3000);
   await A.open(noteName); await wait(1500);
   check("the app's own links still work in the window", (await A.viewerText()).includes("Read the article") && /\/note\//.test(p.url()), p.url());
   await b.close();
