@@ -1,5 +1,6 @@
 // Wide screens: three columns, the sidebar (account, search, notebooks, settings), the notes, and the
-// open note. There's no drawer, the sidebar has what it has.
+// open note. There's no drawer, the sidebar has what it has. The sidebar and the notes column are
+// made wider and narrower by dragging their edge.
 const { launch, session, run, check, api, unique, config } = require("../lib");
 run(async () => {
   const n = unique();
@@ -124,9 +125,9 @@ run(async () => {
   check("and can be shown again", await sidebar.count() === 1 && await shown("Notebook " + other));
 
   // Changing its width by dragging its edge, which is remembered
-  const width = async () => Math.round((await sidebar.boundingBox()).width);
-  const drag = async (dx) => {
-    const handle = (await A.p.locator('[data-testid="sidebar-resize"] >> visible=true').boundingBox());
+  const width = async (el = sidebar) => Math.round((await el.boundingBox()).width);
+  const drag = async (dx, handleId = "sidebar-resize") => {
+    const handle = (await A.p.locator(`[data-testid="${handleId}"] >> visible=true`).boundingBox());
     const x = handle.x + handle.width / 2, y = handle.y + 300;
     await A.p.mouse.move(x, y); await A.p.mouse.down();
     await A.p.mouse.move(x + dx / 2, y, { steps: 5 }); await A.p.mouse.move(x + dx, y, { steps: 5 });
@@ -144,6 +145,21 @@ run(async () => {
   check("or wider than 400", (await width()) === 400, await width());
   await drag(before - 400);
   check("and can be dragged back", Math.abs((await width()) - before) <= 2, await width());
+
+  // The same for the notes column, which leaves 420 pixels for the note next to it
+  const columnBefore = await width(column);
+  check("the notes column is 340 pixels wide at first", columnBefore === 340, columnBefore);
+  await drag(100, "notes-column-resize");
+  check("dragging its edge makes the notes column wider", Math.abs((await width(column)) - (columnBefore + 100)) <= 2, await width(column));
+  await A.p.reload(); await A.wait(6000);
+  check("its width stays after reloading", Math.abs((await width(column)) - (columnBefore + 100)) <= 2, await width(column));
+  await drag(-1000, "notes-column-resize");
+  check("it doesn't get narrower than 260 pixels", (await width(column)) === 260, await width(column));
+  await drag(2000, "notes-column-resize");
+  const roomForNote = 1280 - (await width()) - 420;
+  check("or wider than leaves room for the note", Math.abs((await width(column)) - roomForNote) <= 1, [await width(column), roomForNote]);
+  await drag(columnBefore - (await width(column)), "notes-column-resize");
+  check("and can be dragged back", Math.abs((await width(column)) - columnBefore) <= 2, await width(column));
 
   // New notebook
   await row("New notebook").click(); await A.wait(1500);

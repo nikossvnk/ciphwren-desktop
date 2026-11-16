@@ -430,6 +430,8 @@ export interface SettingsType {
   sidebarVisible: boolean;
   // Its width in pixels, which can be changed by dragging its edge
   sidebarWidth: number;
+  // The width of the notes column of wide screens, changed the same way (340 until it's changed)
+  notesColumnWidth?: number;
   viewSettings: {
     defaultViewMode: ViewModeKey;
     lastViewMode: boolean;

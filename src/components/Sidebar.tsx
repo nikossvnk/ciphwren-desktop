@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import * as React from "react";
-import { Linking, PanResponder, Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
+import { Linking, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Divider, IconButton, Text, TouchableRipple } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -18,7 +18,7 @@ import { externalMenuItems, FingerprintDialog } from "../Drawer";
 import LogoutDialog from "./LogoutDialog";
 import Menu from "../widgets/Menu";
 import MenuItem from "../widgets/MenuItem";
-import { useSearchQuery, useWideNavigation } from "./WideLayout";
+import { noSelectWhile, ResizeHandle, useSearchQuery, useSidebarResize, useWideNavigation } from "./WideLayout";
 import * as C from "../constants";
 import { usePimCollections, usePimItems } from "../pim/data";
 import { ContactType, TaskType } from "../pim/pim-types";
@@ -29,48 +29,6 @@ import { useDialogs } from "../pim/Dialogs";
 import { bookmarksSelector } from "../bookmarks";
 
 export { useSidebarShown } from "./WideLayout";
-
-// The sidebar's width can be changed between these, and always leaves room for the columns next to it
-const minWidth = 200;
-const maxWidth = 400;
-const minScreenWidth = 720;
-
-function clampWidth(width: number, windowWidth: number) {
-  return Math.round(Math.max(minWidth, Math.min(width, maxWidth, windowWidth - minScreenWidth)));
-}
-
-// Changes the width of the sidebar by dragging the handle on its edge. The width is shown while
-// dragging and saved when it's let go.
-function useResize(savedWidth: number, save: (width: number) => void) {
-  const windowWidth = useWindowDimensions().width;
-  const [dragWidth, setDragWidth] = React.useState<number>();
-  const startRef = React.useRef(savedWidth);
-  const latest = React.useRef({ savedWidth, windowWidth, save });
-  latest.current = { savedWidth, windowWidth, save };
-
-  const panResponder = React.useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      startRef.current = clampWidth(latest.current.savedWidth, latest.current.windowWidth);
-      setDragWidth(startRef.current);
-    },
-    onPanResponderMove: (_e, gesture) => {
-      setDragWidth(clampWidth(startRef.current + gesture.dx, latest.current.windowWidth));
-    },
-    onPanResponderRelease: (_e, gesture) => {
-      latest.current.save(clampWidth(startRef.current + gesture.dx, latest.current.windowWidth));
-      setDragWidth(undefined);
-    },
-    onPanResponderTerminate: () => setDragWidth(undefined),
-  }), []);
-
-  return {
-    width: dragWidth ?? clampWidth(savedWidth, windowWidth),
-    dragging: dragWidth !== undefined,
-    handlers: panResponder.panHandlers,
-  };
-}
 
 interface RowPropsType {
   label: string;
@@ -515,8 +473,7 @@ export default function Sidebar() {
   const { query, setQuery } = useSearchQuery();
   const cacheItems = useSelector((state: StoreState) => state.cache.items);
   const bookmarkItems = useSelector(bookmarksSelector);
-  const savedWidth = useSelector((state: StoreState) => state.settings.sidebarWidth);
-  const resize = useResize(savedWidth, (sidebarWidth) => dispatch(setSettings({ sidebarWidth }) as any));
+  const resize = useSidebarResize();
   const pendingCount = usePendingCount();
   const dialogs = useDialogs();
   const isSyncing = useSelector((state: StoreState) => state.syncCount) > 0;
@@ -594,9 +551,7 @@ export default function Sidebar() {
   return (
     <View
       testID="sidebar"
-      style={[styles.sidebar, { width: resize.width, backgroundColor: theme.colors.sidebar, borderRightColor: borderColor },
-        // No text gets selected while dragging the edge
-        (resize.dragging && (Platform.OS === "web")) ? ({ userSelect: "none" } as any) : undefined]}
+      style={[styles.sidebar, { width: resize.width, backgroundColor: theme.colors.sidebar, borderRightColor: borderColor }, noSelectWhile(resize)]}
     >
       <View style={styles.top}>
         <Account />
@@ -675,13 +630,7 @@ export default function Sidebar() {
           onPress={() => dispatch(setSettings({ sidebarVisible: false }) as any)}
         />
       </View>
-      <View
-        {...resize.handlers}
-        testID="sidebar-resize"
-        accessibilityLabel="Change the width of the sidebar"
-        style={[styles.resize, (Platform.OS === "web") ? ({ cursor: "col-resize" } as any) : undefined,
-          (resize.dragging) ? { backgroundColor: theme.colors.activeIcon } : undefined]}
-      />
+      <ResizeHandle resize={resize} label="Change the width of the sidebar" testID="sidebar-resize" />
     </View>
   );
 }
@@ -707,18 +656,10 @@ export function SidebarShowButton() {
 const styles = StyleSheet.create({
   sidebar: {
     borderRightWidth: StyleSheet.hairlineWidth,
-    // Over the column next to it, which the handle of the edge reaches into
-    zIndex: 1,
+    // Over the column next to it, which the handle of the edge reaches into (the notes column is
+    // over the screen next to it in turn)
+    zIndex: 2,
     paddingTop: 12,
-  },
-  // The handle to drag the edge with, over the edge
-  resize: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    right: -3,
-    width: 6,
-    zIndex: 1,
   },
   // (its button is at the bottom, where the one that hides it is)
   hidden: {

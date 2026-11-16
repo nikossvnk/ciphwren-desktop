@@ -21,7 +21,7 @@ import AppbarButton from "../widgets/AppbarButton";
 import SyncButton, { syncPausedOn, useAutoSync } from "./SyncButton";
 import { Result } from "../screens/SearchScreen";
 import { Entry, getSortFunction, PinnedNotes, SelectionButtons, shortDate, splitPinned, useItemManagers, useNotePreview } from "./NoteList";
-import { useSearchQuery, useWideNavigation } from "./WideLayout";
+import { noSelectWhile, ResizeHandle, useNotesColumnResize, useSearchQuery, useWideNavigation } from "./WideLayout";
 import { defaultColor } from "../constants";
 
 interface RowPropsType {
@@ -98,6 +98,7 @@ export default function NotesColumn() {
   const results = useNoteSearch(query, searching && !syncGate);
   // (it syncs when the column is shown)
   const sync = useAutoSync(syncPausedOn(currentScreen));
+  const resize = useNotesColumnResize();
   // The notes selected with ctrl (or cmd) and a click, to pin or delete them
   const [selection, setSelection] = React.useState<Set<string>>(() => new Set());
   // The notes the dialog asks about deleting
@@ -233,7 +234,7 @@ export default function NotesColumn() {
     : `${entries.length} ${(entries.length === 1) ? "note" : "notes"}`;
 
   return (
-    <View testID="notes-column" style={[styles.column, { backgroundColor: theme.colors.background, borderRightColor: theme.colors.border }]}>
+    <View testID="notes-column" style={[styles.column, { width: resize.width, backgroundColor: theme.colors.background, borderRightColor: theme.colors.border }, noSelectWhile(resize)]}>
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={[styles.heading, { color: theme.colors.text }]} accessibilityRole="header" numberOfLines={1}>{title}</Text>
@@ -358,14 +359,16 @@ export default function NotesColumn() {
           )}
         />
       )}
+      <ResizeHandle resize={resize} label="Change the width of the notes column" testID="notes-column-resize" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   column: {
-    width: 340,
     borderRightWidth: StyleSheet.hairlineWidth,
+    // Over the screen next to it, which the handle of the edge reaches into
+    zIndex: 1,
   },
   header: {
     flexDirection: "row",

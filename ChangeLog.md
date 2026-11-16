@@ -15,6 +15,7 @@
 * A task of high priority is marked in red and one of medium priority in amber (they were orange and yellow), and so are a password that is too short and one that is okay when signing up
 * A right click on a task has "Edit" and "Delete"
 * A note written to do so can no longer make the viewer take very long to show it (markdown-it 14.3.3)
+* The notes column of wide screens is made wider or narrower by dragging its edge, like the sidebar, and keeps its width
 
 ## Version 1.9.0
 * New notes open right away: the title is written in the bar at the top, and the notebook is chosen next to it (or under it on phones). This replaces the screens to edit the properties of a note and to move it
