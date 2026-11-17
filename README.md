@@ -10,6 +10,8 @@
 <p align="center">
   <a href="#installing-it"><strong>Install on Linux</strong></a>
   &nbsp;·&nbsp;
+  <a href="https://nikossvnk.github.io/ciphwren-desktop/">Website</a>
+  &nbsp;·&nbsp;
   <a href="#whats-in-it">What's in it</a>
   &nbsp;·&nbsp;
   <a href="#security-and-privacy">Security and privacy</a>
@@ -64,6 +66,8 @@ this computer. Then log in with your server's URL (under "Advanced settings"), e
 - **Removing it:** `~/.local/share/ciphwren-desktop/install.sh --uninstall`
 
 More options (port, browser) and how releases are made are in `desktop/README.md`.
+
+The [project page](https://nikossvnk.github.io/ciphwren-desktop/) has the same instructions with screenshots.
 
 ## What's in it
 
